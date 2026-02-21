@@ -1,0 +1,317 @@
+name: Redesign Pages
+on:
+  workflow_dispatch:
+
+jobs:
+  redesign:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Redesign all HTML pages
+        run: |
+          python3 << 'EOF'
+          import os
+          import re
+          import glob
+
+          def get_meta(html, name):
+              m = re.search(rf'<meta name="{name}" content="([^"]*)"', html)
+              if not m:
+                  m = re.search(rf'<meta property="{name}" content="([^"]*)"', html)
+              return m.group(1) if m else ''
+
+          def get_title(html):
+              m = re.search(r'<title>([^<]*)</title>', html)
+              if m:
+                  t = m.group(1)
+                  return re.sub(r'\s*\|\s*MULTIBET.*$', '', t).strip()
+              return 'Article'
+
+          def get_featured_image(html):
+              m = re.search(r'class="[^"]*wp-post-image[^"]*"[^>]*src="([^"]*)"', html)
+              if not m:
+                  m = re.search(r'src="([^"]*)"[^>]*class="[^"]*wp-post-image[^"]*"', html)
+              if not m:
+                  m = re.search(r'src="(https://i\.imgur\.com/[^"]+)"', html)
+              return m.group(1) if m else 'https://i.imgur.com/ygFk5oT.jpg'
+
+          def get_category(html):
+              m = re.search(r'<a href="/category/([^/]+)/"[^>]*>([^<]+)</a>', html)
+              if m:
+                  return m.group(1), m.group(2)
+              return 'news', 'News'
+
+          def get_date(html):
+              m = re.search(r'<div class="newsx-post-date">([^<]+)</div>', html)
+              if not m:
+                  m = re.search(r'"datePublished":"([^"T]+)', html)
+              return m.group(1).strip() if m else ''
+
+          def get_article_content(html):
+              m = re.search(r'<div class="newsx-post-content">(.*?)</div>\s*<div class="newsx-static-sharing', html, re.DOTALL)
+              if m:
+                  content = m.group(1)
+                  content = re.sub(r'<div class="lwptoc[^"]*".*?</div>\s*</div>', '', content, flags=re.DOTALL)
+                  return content.strip()
+              return '<p>Content not found.</p>'
+
+          def get_slug(filepath):
+              parts = filepath.replace('\\', '/').split('/')
+              for part in reversed(parts):
+                  if part not in ('index.html', ''):
+                      return part
+              return ''
+
+          def build_page(title, description, category_slug, category_name, date, image, content, slug):
+              return f"""<!DOCTYPE html>
+          <html lang="en-US">
+          <head>
+              <meta charset="UTF-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <title>{title} | MULTIBET</title>
+              <meta name="description" content="{description}">
+              <link rel="preconnect" href="https://fonts.googleapis.com">
+              <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+              <script src="https://cdn.tailwindcss.com"></script>
+              <script src="https://unpkg.com/lucide@latest"></script>
+              <script>
+                  tailwind.config = {{
+                      theme: {{
+                          extend: {{
+                              fontFamily: {{ sans: ['Inter','sans-serif'], display: ['Space Grotesk','sans-serif'] }},
+                              colors: {{ brand: {{ red: '#f84643' }} }},
+                              animation: {{ 'marquee': 'marquee 25s linear infinite', 'slide-up': 'slideUp 0.8s ease-out' }},
+                              keyframes: {{
+                                  marquee: {{ '0%': {{ transform: 'translateX(0%)' }}, '100%': {{ transform: 'translateX(-100%)' }} }},
+                                  slideUp: {{ '0%': {{ transform: 'translateY(20px)', opacity: '0' }}, '100%': {{ transform: 'translateY(0)', opacity: '1' }} }}
+                              }}
+                          }}
+                      }}
+                  }}
+              </script>
+              <style>
+                  .reading-progress {{ position:fixed; top:0; left:0; height:3px; background:linear-gradient(90deg,#f84643,#ff6b6b); z-index:9999; transition:width 0.1s; }}
+                  .article-content p {{ margin-bottom:1.5rem; line-height:1.8; color:#374151; }}
+                  .article-content h1,.article-content h2 {{ font-family:'Space Grotesk',sans-serif; font-size:1.5rem; font-weight:700; margin-top:2rem; margin-bottom:1rem; color:#111827; }}
+                  .article-content h3 {{ font-family:'Space Grotesk',sans-serif; font-size:1.25rem; font-weight:700; margin-top:1.5rem; margin-bottom:0.75rem; color:#111827; }}
+                  .article-content ul,.article-content ol {{ margin-bottom:1.5rem; padding-left:1.5rem; list-style:disc; }}
+                  .article-content li {{ margin-bottom:0.5rem; line-height:1.7; color:#374151; }}
+                  .article-content a {{ color:#f84643; font-weight:600; text-decoration:underline; text-underline-offset:3px; }}
+                  .article-content blockquote {{ border-left:4px solid #f84643; padding-left:1.5rem; margin:2rem 0; font-style:italic; color:#6b7280; }}
+                  .article-content img {{ max-width:100%; border-radius:0.75rem; margin:1rem 0; }}
+              </style>
+          </head>
+          <body class="bg-gray-50 font-sans antialiased">
+              <div class="reading-progress" id="readingProgress"></div>
+              <div class="bg-red-500 text-white py-2 overflow-hidden">
+                  <div class="flex items-center max-w-7xl mx-auto px-4">
+                      <span class="font-bold text-sm uppercase tracking-wider shrink-0 mr-6">🔥 Hot News</span>
+                      <div class="overflow-hidden flex-1">
+                          <div class="flex gap-8 animate-marquee whitespace-nowrap">
+                              <a href="/sportpesa-mega-jackpot-prediction/" class="hover:underline text-sm">SportPesa Mega Jackpot Prediction</a>
+                              <span class="opacity-50">•</span>
+                              <a href="/betika-mabingwa-jackpot-prediction/" class="hover:underline text-sm">Betika Mabingwa Jackpot</a>
+                              <span class="opacity-50">•</span>
+                              <a href="/daily-multibet/" class="hover:underline text-sm">Daily Multibet Tips</a>
+                              <span class="opacity-50">•</span>
+                              <a href="/mega-jackpot-prediction/" class="hover:underline text-sm">Mega Jackpot Prediction</a>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+              <header class="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
+                  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                      <div class="flex items-center justify-between h-20">
+                          <a href="/" class="flex items-center gap-3">
+                              <div class="w-12 h-12 bg-red-500 rounded-xl flex items-center justify-center">
+                                  <span class="text-white font-bold text-xl font-display">M</span>
+                              </div>
+                              <div>
+                                  <div class="text-2xl font-bold font-display text-gray-900">MULTIBET</div>
+                                  <p class="text-xs text-gray-500 uppercase tracking-widest">Your home of sportpesa mega jackpot</p>
+                              </div>
+                          </a>
+                          <nav class="hidden md:flex items-center gap-8">
+                              <a href="/" class="text-gray-700 hover:text-red-500 font-medium transition-colors">Home</a>
+                              <a href="/category/news/" class="text-gray-700 hover:text-red-500 font-medium transition-colors">News</a>
+                              <a href="/sportpesa-jackpot/" class="text-gray-700 hover:text-red-500 font-medium transition-colors">Jackpot</a>
+                              <a href="/daily-multibet/" class="text-gray-700 hover:text-red-500 font-medium transition-colors">Tips</a>
+                          </nav>
+                          <div class="flex items-center gap-3">
+                              <a href="#" class="hidden md:flex w-10 h-10 rounded-full bg-gray-100 items-center justify-center hover:bg-red-500 hover:text-white transition-all"><i data-lucide="facebook" class="w-5 h-5"></i></a>
+                              <a href="#" class="hidden md:flex w-10 h-10 rounded-full bg-gray-100 items-center justify-center hover:bg-red-500 hover:text-white transition-all"><i data-lucide="twitter" class="w-5 h-5"></i></a>
+                          </div>
+                      </div>
+                  </div>
+              </header>
+              <div class="bg-gray-900 text-white py-3">
+                  <div class="max-w-7xl mx-auto px-4 flex items-center justify-between text-sm">
+                      <span class="text-gray-300 flex items-center gap-2"><i data-lucide="calendar" class="w-4 h-4"></i> Saturday, February 21, 2026</span>
+                      <a href="/disclaimer/" class="text-gray-400 hover:text-red-400 transition-colors">18+ | Bet Responsibly</a>
+                  </div>
+              </div>
+              <div class="max-w-7xl mx-auto px-4 py-4">
+                  <nav class="flex items-center gap-2 text-sm text-gray-500">
+                      <a href="/" class="hover:text-red-500 transition-colors">Home</a>
+                      <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                      <a href="/category/{category_slug}/" class="hover:text-red-500 transition-colors">{category_name}</a>
+                      <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                      <span class="text-gray-900 font-medium truncate max-w-xs sm:max-w-md">{title}</span>
+                  </nav>
+              </div>
+              <main class="max-w-7xl mx-auto px-4 pb-16">
+                  <div class="grid lg:grid-cols-12 gap-8">
+                      <article class="lg:col-span-8">
+                          <div class="mb-4">
+                              <a href="/category/{category_slug}/" class="inline-flex items-center px-4 py-1.5 bg-red-50 text-red-500 rounded-full text-sm font-semibold hover:bg-red-500 hover:text-white transition-all">{category_name}</a>
+                          </div>
+                          <h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold font-display text-gray-900 leading-tight mb-6">{title}</h1>
+                          <div class="flex flex-wrap items-center gap-4 text-sm text-gray-500 mb-8 pb-8 border-b border-gray-200">
+                              <div class="flex items-center gap-2">
+                                  <div class="w-8 h-8 rounded-full bg-red-500 flex items-center justify-center"><span class="text-white font-bold text-xs">M</span></div>
+                                  <span class="font-medium text-gray-900">multibet</span>
+                              </div>
+                              <span>•</span>
+                              <div class="flex items-center gap-2"><i data-lucide="calendar" class="w-4 h-4"></i><span>{date}</span></div>
+                          </div>
+                          <div class="relative mb-8 rounded-2xl overflow-hidden group">
+                              <img src="{image}" alt="{title}" class="w-full h-auto object-cover transform group-hover:scale-105 transition-transform duration-700">
+                          </div>
+                          <div class="article-content text-lg">{content}</div>
+                          <div class="flex items-center justify-between py-6 border-t border-b border-gray-200 my-8">
+                              <span class="font-semibold text-gray-900 flex items-center gap-2"><i data-lucide="share-2" class="w-5 h-5"></i> Share this Article</span>
+                              <div class="flex gap-3">
+                                  <a href="https://www.facebook.com/sharer/sharer.php?u=/{slug}/" target="_blank" class="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center hover:scale-110 transition-transform"><i data-lucide="facebook" class="w-5 h-5"></i></a>
+                                  <a href="https://twitter.com/intent/tweet?text={title}&url=/{slug}/" target="_blank" class="w-10 h-10 rounded-full bg-gray-900 text-white flex items-center justify-center hover:scale-110 transition-transform"><i data-lucide="twitter" class="w-5 h-5"></i></a>
+                                  <button onclick="navigator.clipboard.writeText(window.location.href)" class="w-10 h-10 rounded-full bg-gray-200 text-gray-700 flex items-center justify-center hover:scale-110 transition-transform"><i data-lucide="link" class="w-5 h-5"></i></button>
+                              </div>
+                          </div>
+                          <div class="bg-gray-50 rounded-xl p-6 flex gap-4 items-start">
+                              <div class="w-16 h-16 rounded-full bg-red-500 flex items-center justify-center shrink-0"><span class="text-white font-bold text-xl font-display">M</span></div>
+                              <div>
+                                  <span class="font-bold text-gray-900">multibet</span>
+                                  <p class="text-sm text-gray-500 mt-1">Sports betting analyst and gaming industry expert covering the Kenyan market.</p>
+                              </div>
+                          </div>
+                      </article>
+                      <aside class="lg:col-span-4 space-y-6">
+                          <div class="bg-white rounded-xl border border-gray-200 p-6">
+                              <h3 class="font-display font-bold text-lg text-gray-900 mb-4 flex items-center gap-2"><i data-lucide="newspaper" class="w-5 h-5 text-red-500"></i> Popular Posts</h3>
+                              <div class="space-y-4">
+                                  <a href="/sportpesa-mega-jackpot-prediction/" class="group flex gap-3"><img src="https://i.imgur.com/ygFk5oT.jpg" alt="" class="w-20 h-14 object-cover rounded-lg shrink-0"><div><h4 class="text-sm font-semibold text-gray-900 line-clamp-2 group-hover:text-red-500 transition-colors">SportPesa Mega Jackpot Prediction This Week</h4></div></a>
+                                  <a href="/betika-mabingwa-jackpot-prediction/" class="group flex gap-3"><img src="https://i.imgur.com/rxC9MAj.jpg" alt="" class="w-20 h-14 object-cover rounded-lg shrink-0"><div><h4 class="text-sm font-semibold text-gray-900 line-clamp-2 group-hover:text-red-500 transition-colors">Betika Mabingwa Jackpot Predictions</h4></div></a>
+                                  <a href="/daily-multibet/" class="group flex gap-3"><img src="https://i.imgur.com/mG2T8IS.jpg" alt="" class="w-20 h-14 object-cover rounded-lg shrink-0"><div><h4 class="text-sm font-semibold text-gray-900 line-clamp-2 group-hover:text-red-500 transition-colors">Daily Multibet Tips</h4></div></a>
+                              </div>
+                          </div>
+                          <div class="bg-gradient-to-br from-gray-900 to-gray-800 text-white rounded-xl p-6">
+                              <h3 class="font-display font-bold text-lg mb-2">Stay Updated</h3>
+                              <p class="text-gray-300 text-sm mb-4">Get the latest betting tips and jackpot predictions.</p>
+                              <div class="space-y-3">
+                                  <input type="email" placeholder="Your email address" class="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white placeholder-gray-400 focus:outline-none">
+                                  <button class="w-full py-2 bg-red-500 hover:bg-red-600 rounded-lg font-semibold transition-colors">Subscribe</button>
+                              </div>
+                          </div>
+                          <div class="bg-white rounded-xl border border-gray-200 p-6">
+                              <h3 class="font-display font-bold text-lg text-gray-900 mb-4">Quick Links</h3>
+                              <nav class="space-y-2">
+                                  <a href="/" class="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 group"><span class="text-gray-700 group-hover:text-red-500">Home</span><i data-lucide="chevron-right" class="w-4 h-4 text-gray-400"></i></a>
+                                  <a href="/sportpesa-jackpot/" class="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 group"><span class="text-gray-700 group-hover:text-red-500">Jackpot Tips</span><i data-lucide="chevron-right" class="w-4 h-4 text-gray-400"></i></a>
+                                  <a href="/daily-multibet/" class="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 group"><span class="text-gray-700 group-hover:text-red-500">Daily Tips</span><i data-lucide="chevron-right" class="w-4 h-4 text-gray-400"></i></a>
+                                  <a href="/disclaimer/" class="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 group"><span class="text-gray-700 group-hover:text-red-500">Disclaimer</span><i data-lucide="chevron-right" class="w-4 h-4 text-gray-400"></i></a>
+                              </nav>
+                          </div>
+                      </aside>
+                  </div>
+              </main>
+              <footer class="bg-gray-900 text-white pt-12 pb-6">
+                  <div class="max-w-7xl mx-auto px-4">
+                      <div class="grid md:grid-cols-4 gap-8 mb-8">
+                          <div>
+                              <div class="flex items-center gap-3 mb-4"><div class="w-10 h-10 bg-red-500 rounded-lg flex items-center justify-center"><span class="text-white font-bold font-display">M</span></div><span class="text-xl font-bold font-display">MULTIBET</span></div>
+                              <p class="text-gray-400 text-sm">Your trusted source for SportPesa Mega Jackpot predictions and betting insights in Kenya.</p>
+                          </div>
+                          <div>
+                              <h4 class="font-semibold mb-4">Categories</h4>
+                              <ul class="space-y-2 text-sm text-gray-400">
+                                  <li><a href="/sportpesa-jackpot/" class="hover:text-red-400 transition-colors">Jackpot Tips</a></li>
+                                  <li><a href="/daily-multibet/" class="hover:text-red-400 transition-colors">Daily Multibets</a></li>
+                                  <li><a href="/category/news/" class="hover:text-red-400 transition-colors">News</a></li>
+                                  <li><a href="/mega-jackpot-prediction/" class="hover:text-red-400 transition-colors">Mega Jackpot</a></li>
+                              </ul>
+                          </div>
+                          <div>
+                              <h4 class="font-semibold mb-4">Legal</h4>
+                              <ul class="space-y-2 text-sm text-gray-400">
+                                  <li><a href="/privacy-policy/" class="hover:text-red-400 transition-colors">Privacy Policy</a></li>
+                                  <li><a href="/disclaimer/" class="hover:text-red-400 transition-colors">Disclaimer</a></li>
+                                  <li><a href="/responsible-gambling-in-kenya-tips-for-safe-gambling/" class="hover:text-red-400 transition-colors">Responsible Gaming</a></li>
+                                  <li><a href="/advertise/" class="hover:text-red-400 transition-colors">Advertise</a></li>
+                                  <li><a href="/guest-post-with-us/" class="hover:text-red-400 transition-colors">Guest Post</a></li>
+                              </ul>
+                          </div>
+                          <div>
+                              <h4 class="font-semibold mb-4">Connect</h4>
+                              <div class="flex gap-3">
+                                  <a href="#" class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-red-500 transition-colors"><i data-lucide="facebook" class="w-5 h-5"></i></a>
+                                  <a href="#" class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-red-500 transition-colors"><i data-lucide="twitter" class="w-5 h-5"></i></a>
+                                  <a href="#" class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-red-500 transition-colors"><i data-lucide="instagram" class="w-5 h-5"></i></a>
+                              </div>
+                          </div>
+                      </div>
+                      <div class="border-t border-gray-800 pt-6 flex flex-col md:flex-row items-center justify-between gap-4">
+                          <p class="text-sm text-gray-500">Copyright © 2026 MULTIBET | Gambling is for 18+ only. Bet responsibly.</p>
+                          <a href="/legal#disclaimer" rel="nofollow" class="text-sm text-gray-400 hover:text-red-400 transition-colors">Disclaimer</a>
+                      </div>
+                  </div>
+              </footer>
+              <script>
+                  lucide.createIcons();
+                  window.addEventListener('scroll', () => {{
+                      const w = document.body.scrollTop || document.documentElement.scrollTop;
+                      const h = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+                      document.getElementById('readingProgress').style.width = ((w/h)*100) + "%";
+                  }});
+              </script>
+          </body>
+          </html>"""
+
+          processed = 0
+          skipped = 0
+
+          for filepath in glob.glob('**/index.html', recursive=True):
+              if filepath == 'index.html':
+                  continue
+              try:
+                  with open(filepath, 'r', encoding='utf-8', errors='ignore') as f:
+                      html = f.read()
+                  if 'newsx-post-content' not in html:
+                      skipped += 1
+                      continue
+                  title = get_title(html)
+                  description = get_meta(html, 'description')
+                  cat_slug, cat_name = get_category(html)
+                  date = get_date(html)
+                  image = get_featured_image(html)
+                  content = get_article_content(html)
+                  slug = get_slug(filepath)
+                  new_html = build_page(title, description, cat_slug, cat_name, date, image, content, slug)
+                  with open(filepath, 'w', encoding='utf-8') as f:
+                      f.write(new_html)
+                  processed += 1
+                  if processed % 50 == 0:
+                      print(f"Processed {processed} pages...")
+              except Exception as e:
+                  print(f"Error: {filepath}: {e}")
+                  skipped += 1
+
+          print(f"Done! Processed: {processed}, Skipped: {skipped}")
+          EOF
+
+      - uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: Redesign all pages with modern template
