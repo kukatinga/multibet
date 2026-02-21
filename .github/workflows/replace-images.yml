@@ -1,0 +1,59 @@
+name: Replace Image URLs
+on:
+  workflow_dispatch:
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Replace image URLs with imgur images
+        run: |
+          python3 << 'EOF'
+          import glob
+          import re
+          import random
+
+          images = [
+              "https://i.imgur.com/ygFk5oT.jpg",
+              "https://i.imgur.com/rxC9MAj.jpg",
+              "https://i.imgur.com/mG2T8IS.jpg",
+              "https://i.imgur.com/jzFnQlJ.jpg",
+              "https://i.imgur.com/w6dLBn6.jpg",
+              "https://i.imgur.com/z5vDEJs.jpg",
+              "https://i.imgur.com/fhUbwy6.jpg",
+              "https://i.imgur.com/FlRylsY.jpg",
+              "https://i.imgur.com/wHOPtRW.jpg",
+              "https://i.imgur.com/S6J5ZEX.jpg",
+              "https://i.imgur.com/2H9nodm.jpg",
+              "https://i.imgur.com/PqIWVIz.jpg",
+              "https://i.imgur.com/r7MIR8x.jpg",
+              "https://i.imgur.com/ridLkYv.jpg",
+              "https://i.imgur.com/J5P6sSa.jpg",
+              "https://i.imgur.com/2ssF86m.jpg",
+              "https://i.imgur.com/kc2AIq8.jpg"
+          ]
+
+          pattern = re.compile(r'/wp-content/uploads/[^\s"\']+')
+
+          for filepath in glob.glob('**/*.html', recursive=True):
+              with open(filepath, 'r', encoding='utf-8') as f:
+                  content = f.read()
+
+              def replace_with_random(match):
+                  return random.choice(images)
+
+              new_content = pattern.sub(replace_with_random, content)
+
+              with open(filepath, 'w', encoding='utf-8') as f:
+                  f.write(new_content)
+
+          print("Done!")
+          EOF
+      - uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: Replace WordPress image URLs with imgur images
