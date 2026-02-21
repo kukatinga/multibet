@@ -1,0 +1,26 @@
+name: Delete Copy Folders
+on:
+  workflow_dispatch:
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Delete all Copy folders
+        run: |
+          find . -name "* - Copy" -type d | while read dir; do
+            echo "Deleting: $dir"
+            rm -rf "$dir"
+          done
+          find . -name "* - Copy.*" -type f | while read f; do
+            echo "Deleting: $f"
+            rm -f "$f"
+          done
+      - uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: Delete all duplicate Copy folders
