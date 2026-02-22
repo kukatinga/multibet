@@ -1,4 +1,4 @@
-name: Generate Category Pages
+name: Generate Category Pages Smart
 on:
   workflow_dispatch:
 
@@ -12,9 +12,9 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Write Python script
+      - name: Write script
         run: |
-          cat > /tmp/gen_categories.py << 'SCRIPTEOF'
+          cat > /tmp/gen_cats.py << 'SCRIPTEOF'
           import os, re, glob, random
 
           IMGUR_IMAGES = [
@@ -32,8 +32,7 @@ jobs:
           def get_title(html):
               m = re.search(r'<title>([^<]*)</title>', html)
               if m:
-                  t = m.group(1)
-                  return re.sub(r'\s*\|\s*MULTIBET.*$', '', t).strip()
+                  return re.sub(r'\s*\|\s*MULTIBET.*$', '', m.group(1)).strip()
               return 'Article'
 
           def get_description(html):
@@ -41,15 +40,24 @@ jobs:
               return m.group(1) if m else ''
 
           def get_category(html):
-              m = re.search(r'<a href="/category/([^/]+)/"[^>]*>([^<]+)</a>', html)
-              if m:
-                  return m.group(1).strip(), m.group(2).strip()
+              # Match category links but exclude navigation links that appear in every page
+              matches = re.findall(r'<a href="/category/([^/]+)/"[^>]*>([^<]+)</a>', html)
+              # The article's own category appears multiple times (breadcrumb + badge)
+              # Navigation has: news, so exclude those
+              nav_cats = {'news'}
+              for slug, name in matches:
+                  slug = slug.strip()
+                  name = name.strip()
+                  if slug not in nav_cats and len(slug) > 2:
+                      return slug, name
               return None, None
 
           def get_date(html):
               m = re.search(r'<span[^>]*>\s*(\w+ \d+, \d{4})\s*</span>', html)
               if not m:
                   m = re.search(r'"datePublished":"([^"T]+)', html)
+              if not m:
+                  m = re.search(r'<div class="newsx-post-date">([^<]+)</div>', html)
               return m.group(1).strip() if m else ''
 
           def get_image(html):
@@ -63,35 +71,65 @@ jobs:
                       return part
               return ''
 
-          print("Scanning pages...")
+          def is_article_page(html):
+              """Check if this page is an actual article (not a category listing)"""
+              return ('article-content' in html or 
+                      'newsx-post-content' in html or
+                      'Share this Article' in html)
+
+          def is_category_listing(html):
+              """Check if this is already a category listing page we generated"""
+              return 'All Categories' in html and 'layout-grid' in html
+
+          # Scan all pages
+          print("Scanning all pages...")
           categories = {}
+          article_count = 0
 
           for filepath in glob.glob('**/index.html', recursive=True):
               if filepath == 'index.html':
                   continue
-              if '/category/' in filepath.replace('\\', '/'):
-                  continue
               try:
                   with open(filepath, 'r', encoding='utf-8', errors='ignore') as f:
                       html = f.read()
+
+                  # Skip if it's a category listing we already made
+                  if is_category_listing(html):
+                      continue
+
+                  # Only process actual article pages
+                  if not is_article_page(html):
+                      continue
+
                   cat_slug, cat_name = get_category(html)
                   if not cat_slug:
                       continue
+
                   slug = get_slug(filepath)
                   title = get_title(html)
                   description = get_description(html)
                   date = get_date(html)
                   image = get_image(html)
+
                   if cat_slug not in categories:
                       categories[cat_slug] = {'name': cat_name, 'articles': []}
-                  categories[cat_slug]['articles'].append({
-                      'slug': slug, 'title': title,
-                      'description': description, 'date': date, 'image': image,
-                  })
-              except Exception as e:
-                  print(f"Error reading {filepath}: {e}")
 
-          print(f"Found {len(categories)} categories: {list(categories.keys())}")
+                  categories[cat_slug]['articles'].append({
+                      'slug': slug,
+                      'title': title,
+                      'description': description[:200],
+                      'date': date,
+                      'image': image,
+                      'filepath': filepath,
+                  })
+                  article_count += 1
+
+              except Exception as e:
+                  print("Error reading " + filepath + ": " + str(e))
+
+          print("Found " + str(article_count) + " articles in " + str(len(categories)) + " categories:")
+          for slug, data in categories.items():
+              print("  " + slug + ": " + str(len(data['articles'])) + " articles")
 
           def card(a):
               return (
@@ -101,36 +139,37 @@ jobs:
                   '</div></a>'
                   '<div class="p-5">'
                   '<div class="flex items-center gap-2 text-xs text-gray-400 mb-3"><i data-lucide="calendar" class="w-3 h-3"></i><span>' + a['date'] + '</span></div>'
-                  '<h2 class="font-display font-bold text-gray-900 text-lg leading-tight mb-2 group-hover:text-red-500 transition-colors line-clamp-2">'
-                  '<a href="/' + a['slug'] + '/">' + a['title'] + '</a></h2>'
-                  '<p class="text-gray-500 text-sm line-clamp-2 mb-4">' + a['description'][:150] + '</p>'
+                  '<h2 class="font-display font-bold text-gray-900 text-lg leading-tight mb-2 line-clamp-2">'
+                  '<a href="/' + a['slug'] + '/" class="hover:text-red-500 transition-colors">' + a['title'] + '</a></h2>'
+                  '<p class="text-gray-500 text-sm line-clamp-2 mb-4">' + a['description'] + '</p>'
                   '<a href="/' + a['slug'] + '/" class="inline-flex items-center gap-2 text-red-500 text-sm font-semibold">Read More <i data-lucide="arrow-right" class="w-4 h-4"></i></a>'
                   '</div></article>'
               )
 
-          def build_page(cat_slug, cat_name, articles, categories):
-              cards = '\n'.join(card(a) for a in articles)
+          def build_category_page(cat_slug, cat_name, articles, all_categories):
+              cards_html = '\n'.join(card(a) for a in articles)
               count = len(articles)
-              other_links = ''
-              for s in categories:
-                  if s == cat_slug:
-                      continue
-                  n = categories[s]['name']
-                  c = len(categories[s]['articles'])
-                  other_links += (
-                      '<a href="/category/' + s + '/" class="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 group">'
-                      '<span class="text-gray-700 group-hover:text-red-500">' + n + '</span>'
-                      '<span class="text-xs bg-red-50 text-red-500 px-2 py-0.5 rounded-full font-semibold">' + str(c) + '</span></a>'
-                  )
               s_count = str(count) + ' article' + ('s' if count != 1 else '') + ' found'
 
-              html = '''<!DOCTYPE html>
+              other_links = ''
+              for s, data in all_categories.items():
+                  if s == cat_slug:
+                      continue
+                  n = data['name']
+                  c = len(data['articles'])
+                  other_links += (
+                      '<a href="/category/' + s + '/" class="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 group">'
+                      '<span class="text-gray-700 group-hover:text-red-500 text-sm">' + n + '</span>'
+                      '<span class="text-xs bg-red-50 text-red-500 px-2 py-0.5 rounded-full font-semibold">' + str(c) + '</span></a>\n'
+                  )
+
+              return '''<!DOCTYPE html>
           <html lang="en-US">
           <head>
               <meta charset="UTF-8">
               <meta name="viewport" content="width=device-width, initial-scale=1.0">
               <title>''' + cat_name + ''' | MULTIBET</title>
-              <meta name="description" content="Browse all ''' + cat_name + ''' articles on MULTIBET - Kenya betting tips and predictions.">
+              <meta name="description" content="Browse ''' + str(count) + ''' articles in ''' + cat_name + ''' on MULTIBET - Kenya betting tips and predictions.">
               <link rel="preconnect" href="https://fonts.googleapis.com">
               <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
               <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
@@ -151,7 +190,6 @@ jobs:
               </style>
           </head>
           <body class="bg-gray-50 font-sans antialiased">
-
           <div class="bg-red-500 text-white py-2 overflow-hidden">
               <div class="flex items-center max-w-7xl mx-auto px-4">
                   <span class="font-bold text-sm uppercase tracking-wider shrink-0 mr-6 flex items-center gap-2">
@@ -170,7 +208,6 @@ jobs:
                   </div>
               </div>
           </div>
-
           <header class="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
               <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                   <div class="flex items-center justify-between h-20">
@@ -196,7 +233,6 @@ jobs:
                   </div>
               </div>
           </header>
-
           <div class="bg-gray-900 text-white py-12">
               <div class="max-w-7xl mx-auto px-4 text-center">
                   <div class="inline-flex items-center gap-2 px-4 py-1.5 bg-red-500/20 text-red-400 rounded-full text-sm font-semibold mb-4">
@@ -206,21 +242,17 @@ jobs:
                   <p class="text-gray-400 text-lg">''' + s_count + '''</p>
               </div>
           </div>
-
           <div class="max-w-7xl mx-auto px-4 py-4">
               <nav class="flex items-center gap-2 text-sm text-gray-500">
-                  <a href="/" class="hover:text-red-500 transition-colors">Home</a>
+                  <a href="/" class="hover:text-red-500">Home</a>
                   <i data-lucide="chevron-right" class="w-4 h-4"></i>
                   <span class="text-gray-900 font-medium">''' + cat_name + '''</span>
               </nav>
           </div>
-
           <main class="max-w-7xl mx-auto px-4 pb-16">
               <div class="grid lg:grid-cols-12 gap-8">
                   <div class="lg:col-span-8">
-                      <div class="grid sm:grid-cols-2 gap-6">
-                          ''' + cards + '''
-                      </div>
+                      <div class="grid sm:grid-cols-2 gap-6">''' + cards_html + '''</div>
                   </div>
                   <aside class="lg:col-span-4 space-y-6">
                       <div class="bg-white rounded-xl border border-gray-200 p-6">
@@ -237,7 +269,7 @@ jobs:
                       </div>
                       <div class="bg-gradient-to-br from-gray-900 to-gray-800 text-white rounded-xl p-6">
                           <h3 class="font-display font-bold text-lg mb-2">Stay Updated</h3>
-                          <p class="text-gray-300 text-sm mb-4">Get the latest betting tips and jackpot predictions.</p>
+                          <p class="text-gray-300 text-sm mb-4">Get the latest betting tips and predictions.</p>
                           <div class="space-y-3">
                               <input type="email" placeholder="Your email address" class="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white placeholder-gray-400 focus:outline-none">
                               <button class="w-full py-2 bg-red-500 hover:bg-red-600 rounded-lg font-semibold transition-colors">Subscribe</button>
@@ -251,34 +283,29 @@ jobs:
                   </aside>
               </div>
           </main>
-
           <footer class="bg-gray-900 text-white pt-12 pb-6">
               <div class="max-w-7xl mx-auto px-4">
                   <div class="grid md:grid-cols-4 gap-8 mb-8">
                       <div>
-                          <div class="flex items-center gap-3 mb-4">
-                              <div class="w-10 h-10 bg-red-500 rounded-lg flex items-center justify-center"><span class="text-white font-bold font-display">M</span></div>
-                              <span class="text-xl font-bold font-display">MULTIBET</span>
-                          </div>
+                          <div class="flex items-center gap-3 mb-4"><div class="w-10 h-10 bg-red-500 rounded-lg flex items-center justify-center"><span class="text-white font-bold font-display">M</span></div><span class="text-xl font-bold font-display">MULTIBET</span></div>
                           <p class="text-gray-400 text-sm">Your trusted source for SportPesa Mega Jackpot predictions and betting insights in Kenya.</p>
                       </div>
                       <div>
                           <h4 class="font-semibold mb-4">Categories</h4>
                           <ul class="space-y-2 text-sm text-gray-400">
-                              <li><a href="/sportpesa-jackpot/" class="hover:text-red-400 transition-colors">Jackpot Tips</a></li>
-                              <li><a href="/daily-multibet/" class="hover:text-red-400 transition-colors">Daily Multibets</a></li>
-                              <li><a href="/category/news/" class="hover:text-red-400 transition-colors">News</a></li>
-                              <li><a href="/mega-jackpot-prediction/" class="hover:text-red-400 transition-colors">Mega Jackpot</a></li>
+                              <li><a href="/sportpesa-jackpot/" class="hover:text-red-400">Jackpot Tips</a></li>
+                              <li><a href="/daily-multibet/" class="hover:text-red-400">Daily Multibets</a></li>
+                              <li><a href="/category/news/" class="hover:text-red-400">News</a></li>
+                              <li><a href="/mega-jackpot-prediction/" class="hover:text-red-400">Mega Jackpot</a></li>
                           </ul>
                       </div>
                       <div>
                           <h4 class="font-semibold mb-4">Legal</h4>
                           <ul class="space-y-2 text-sm text-gray-400">
-                              <li><a href="/privacy-policy/" class="hover:text-red-400 transition-colors">Privacy Policy</a></li>
-                              <li><a href="/disclaimer/" class="hover:text-red-400 transition-colors">Disclaimer</a></li>
-                              <li><a href="/responsible-gambling-in-kenya-tips-for-safe-gambling/" class="hover:text-red-400 transition-colors">Responsible Gaming</a></li>
-                              <li><a href="/advertise/" class="hover:text-red-400 transition-colors">Advertise</a></li>
-                              <li><a href="/guest-post-with-us/" class="hover:text-red-400 transition-colors">Guest Post</a></li>
+                              <li><a href="/privacy-policy/" class="hover:text-red-400">Privacy Policy</a></li>
+                              <li><a href="/disclaimer/" class="hover:text-red-400">Disclaimer</a></li>
+                              <li><a href="/responsible-gambling-in-kenya-tips-for-safe-gambling/" class="hover:text-red-400">Responsible Gaming</a></li>
+                              <li><a href="/advertise/" class="hover:text-red-400">Advertise</a></li>
                           </ul>
                       </div>
                       <div>
@@ -292,34 +319,44 @@ jobs:
                   </div>
                   <div class="border-t border-gray-800 pt-6 flex flex-col md:flex-row items-center justify-between gap-4">
                       <p class="text-sm text-gray-500">Copyright 2026 MULTIBET | Gambling is for 18+ only. Bet responsibly.</p>
-                      <button onclick="window.scrollTo({top:0,behavior:'smooth'})" class="flex items-center gap-2 text-sm text-gray-400 hover:text-red-400 transition-colors">
-                          Back to Top <i data-lucide="arrow-up" class="w-4 h-4"></i>
-                      </button>
+                      <button onclick="window.scrollTo({top:0,behavior:'smooth'})" class="flex items-center gap-2 text-sm text-gray-400 hover:text-red-400">Back to Top <i data-lucide="arrow-up" class="w-4 h-4"></i></button>
                   </div>
               </div>
           </footer>
           <script>lucide.createIcons();</script>
           </body>
           </html>'''
-              return html
 
+          # Write category pages — but NEVER overwrite an article page
           created = 0
+          skipped_articles = 0
+
           for cat_slug, data in categories.items():
               cat_dir = 'category/' + cat_slug
               os.makedirs(cat_dir, exist_ok=True)
               out_path = cat_dir + '/index.html'
-              page = build_page(cat_slug, data['name'], data['articles'], categories)
+
+              # CRITICAL: Check if this path already has an article page
+              if os.path.exists(out_path):
+                  with open(out_path, 'r', encoding='utf-8', errors='ignore') as f:
+                      existing = f.read()
+                  if is_article_page(existing) and not is_category_listing(existing):
+                      print("SKIPPING " + out_path + " - it is an article page, not overwriting!")
+                      skipped_articles += 1
+                      continue
+
+              page = build_category_page(cat_slug, data['name'], data['articles'], categories)
               with open(out_path, 'w', encoding='utf-8') as f:
                   f.write(page)
-              print(f"Created {out_path} with {len(data['articles'])} articles")
+              print("Created " + out_path + " with " + str(len(data['articles'])) + " articles")
               created += 1
 
-          print(f"\nDone! Created {created} category pages.")
+          print("\nDone! Created: " + str(created) + " category pages, Protected: " + str(skipped_articles) + " article pages")
           SCRIPTEOF
 
       - name: Run script
-        run: python3 /tmp/gen_categories.py
+        run: python3 /tmp/gen_cats.py
 
       - uses: stefanzweifel/git-auto-commit-action@v4
         with:
-          commit_message: Generate category pages
+          commit_message: Regenerate category pages without overwriting articles
