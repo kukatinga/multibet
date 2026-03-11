@@ -1,180 +1,78 @@
-
 <!DOCTYPE html>
 <html lang="en-US" prefix="og: https://ogp.me/ns#">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>When bundles run out, the game doesn't stop | MULTIBET</title>
-    <meta name="description" content="Every Kenyan mobile user knows the moment. You're ready to do something now then the bundles are low, the network drags, or your phone decides today is not">
-    
+    <title>Pixel-Perfect Article Template | MULTIBET</title>
+    <meta name="description" content="Fully featured HTML article template with sidebar, TOC, share buttons, newsletter, navigation, author box, and animations.">
+
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
-    
+
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
+
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                        display: ['Space Grotesk', 'sans-serif'],
-                    },
-                    colors: {
-                        brand: {
-                            red: '#f84643',
-                            dark: '#0a0a0a',
-                            gray: '#1a1a1a',
-                            light: '#f5f5f5'
-                        }
-                    },
-                    animation: {
-                        'marquee': 'marquee 25s linear infinite',
-                        'fade-in': 'fadeIn 0.6s ease-out',
-                        'slide-up': 'slideUp 0.8s ease-out',
-                    },
-                    keyframes: {
-                        marquee: {
-                            '0%': { transform: 'translateX(0%)' },
-                            '100%': { transform: 'translateX(-100%)' },
-                        },
-                        fadeIn: {
-                            '0%': { opacity: '0' },
-                            '100%': { opacity: '1' },
-                        },
-                        slideUp: {
-                            '0%': { transform: 'translateY(20px)', opacity: '0' },
-                            '100%': { transform: 'translateY(0)', opacity: '1' },
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-    
+
     <style>
+        /* Gradient text */
         .gradient-text {
             background: linear-gradient(135deg, #f84643 0%, #ff6b6b 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
-        
+
+        /* Glass effect for cards */
         .glass-effect {
             background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
-        
+
+        /* Hover lift animation */
         .hover-lift {
             transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
-        
         .hover-lift:hover {
             transform: translateY(-4px);
             box-shadow: 0 20px 40px rgba(248, 70, 67, 0.15);
         }
-        
-        .article-content p {
-            margin-bottom: 1.5rem;
-            line-height: 1.8;
-            color: #374151;
-        }
-        
-        .article-content h2 {
-            font-family: 'Space Grotesk', sans-serif;
-            font-size: 1.875rem;
-            font-weight: 700;
-            margin-top: 2.5rem;
-            margin-bottom: 1rem;
-            color: #111827;
-        }
-        
-        .article-content ul {
-            margin-bottom: 1.5rem;
-            padding-left: 1.5rem;
-        }
-        
-        .article-content li {
-            margin-bottom: 0.5rem;
-            position: relative;
-            padding-left: 1.5rem;
-        }
-        
-        .article-content li::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 0.6rem;
-            width: 6px;
-            height: 6px;
-            background: #f84643;
-            border-radius: 50%;
-        }
-        
-        .toc-link {
-            position: relative;
-            padding-left: 2rem;
-        }
-        
+
+        /* Article content */
+        .article-content p {margin-bottom: 1.5rem; line-height: 1.8; color: #374151;}
+        .article-content h2 {font-family: 'Space Grotesk', sans-serif; font-size: 1.875rem; font-weight: 700; margin-top: 2.5rem; margin-bottom: 1rem; color: #111827;}
+        .article-content ul {margin-bottom: 1.5rem; padding-left: 1.5rem;}
+        .article-content li {margin-bottom: 0.5rem; position: relative; padding-left: 1.5rem;}
+        .article-content li::before {content: ''; position: absolute; left: 0; top: 0.6rem; width: 6px; height: 6px; background: #f84643; border-radius: 50%;}
+
+        /* TOC */
+        .toc-link {position: relative; padding-left: 2rem; cursor: pointer;}
         .toc-link::before {
             content: attr(data-num);
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 1.5rem;
-            height: 1.5rem;
-            background: #f84643;
-            color: white;
-            border-radius: 50%;
-            font-size: 0.75rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            position: absolute; left: 0; top: 0;
+            width: 1.5rem; height: 1.5rem; background: #f84643;
+            color: white; border-radius: 50%;
+            font-size: 0.75rem; display: flex;
+            align-items: center; justify-content: center;
             font-weight: 600;
         }
-        
-        .reading-progress {
-            position: fixed;
-            top: 0;
-            left: 0;
-            height: 3px;
-            background: linear-gradient(90deg, #f84643, #ff6b6b);
-            z-index: 9999;
-            transition: width 0.1s;
-        }
+
+        /* Reading progress */
+        .reading-progress {position: fixed; top: 0; left: 0; height: 3px; background: linear-gradient(90deg,#f84643,#ff6b6b); z-index: 9999; transition: width 0.1s;}
+
+        /* Animations */
+        .animate-slide-up {opacity: 0; transform: translateY(20px); transition: all 0.6s ease-out;}
+        .animate-slide-up.visible {opacity:1; transform:translateY(0);}
     </style>
 </head>
 <body class="bg-gray-50 font-sans antialiased">
+
     <!-- Reading Progress Bar -->
     <div class="reading-progress" id="readingProgress"></div>
-    
-    <!-- Breaking News Ticker -->
-    <div class="bg-brand-red text-white py-2 overflow-hidden relative">
-        <div class="flex items-center max-w-7xl mx-auto px-4">
-            <span class="flex items-center gap-2 font-bold text-sm uppercase tracking-wider shrink-0 mr-6">
-                <i data-lucide="flame" class="w-4 h-4"></i>
-                Hot News
-            </span>
-            <div class="overflow-hidden flex-1 relative">
-                <div class="flex gap-8 animate-marquee whitespace-nowrap">
-                    <a href="/mashemeji-lit-the-fuse-now-the-sportpesa-league-is-the-weekend-kenya-cant-ignore/" class="hover:underline text-sm">Mashemeji lit the fuse- Now the SportPesa League is the weekend Kenya can't ignore</a>
-                    <span class="text-white/50">•</span>
-                    <a href="/when-bundles-run-out-the-game-doesnt-stop-sportpesa-kenyas-ussd-casino-is-changing-how-kenyans-play/" class="hover:underline text-sm font-semibold">When bundles run out, the game doesn't stop- SportPesa Kenya's USSD Casino</a>
-                    <span class="text-white/50">•</span>
-                    <a href="/every-goal-can-pay-how-sportpesa-kenyas-goal-goal-and-1x2-markets-are-putting-instant-wins-in-fans-hands/" class="hover:underline text-sm">Every goal can pay- How SportPesa Kenya's Goal Goal and 1X2 markets</a>
-                    <span class="text-white/50">•</span>
-                    <a href="/from-99-bob-to-ksh-20-7m-nairobi-tailor-becomes-newest-sportpesa-mega-jackpot-winner/" class="hover:underline text-sm">From 99 bob to KSh 20.7M- Nairobi tailor becomes newest SportPesa Mega Jackpot winner</a>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <!-- Header -->
     <header class="bg-white border-b border-gray-200 sticky top-0 z-50">
@@ -183,7 +81,7 @@
                 <!-- Logo -->
                 <div class="flex items-center gap-3">
                     <a href="/" class="flex items-center gap-3 group">
-                        <div class="w-12 h-12 bg-brand-red rounded-xl flex items-center justify-center transform group-hover:rotate-12 transition-transform">
+                        <div class="w-12 h-12 bg-red-600 rounded-xl flex items-center justify-center transform group-hover:rotate-12 transition-transform">
                             <span class="text-white font-bold text-xl font-display">M</span>
                         </div>
                         <div>
@@ -192,491 +90,137 @@
                         </div>
                     </a>
                 </div>
-
-                <!-- Navigation -->
+                <!-- Nav -->
                 <nav class="hidden md:flex items-center gap-8">
-                    <a href="/" class="text-gray-700 hover:text-brand-red font-medium transition-colors">Home</a>
-                    <a href="/category/reviews/" class="text-brand-red font-semibold">Reviews</a>
-                    <a href="/category/predictions/" class="text-gray-700 hover:text-brand-red font-medium transition-colors">Predictions</a>
-                    <a href="/category/news/" class="text-gray-700 hover:text-brand-red font-medium transition-colors">News</a>
+                    <a href="/" class="text-gray-700 hover:text-red-600 font-medium transition-colors">Home</a>
+                    <a href="/category/reviews/" class="text-red-600 font-semibold">Reviews</a>
+                    <a href="/category/predictions/" class="text-gray-700 hover:text-red-600 font-medium transition-colors">Predictions</a>
+                    <a href="/category/news/" class="text-gray-700 hover:text-red-600 font-medium transition-colors">News</a>
                 </nav>
-
-                <!-- Actions -->
-                <div class="flex items-center gap-4">
-                    <div class="hidden md:flex items-center gap-3">
-                        <a href="#" class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center hover:bg-brand-red hover:text-white transition-all">
-                            <i data-lucide="facebook" class="w-5 h-5"></i>
-                        </a>
-                        <a href="#" class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center hover:bg-brand-red hover:text-white transition-all">
-                            <i data-lucide="twitter" class="w-5 h-5"></i>
-                        </a>
-                        <a href="#" class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center hover:bg-brand-red hover:text-white transition-all">
-                            <i data-lucide="instagram" class="w-5 h-5"></i>
-                        </a>
-                    </div>
-                    
-                    <button onclick="toggleSearch()" class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center hover:bg-brand-red hover:text-white transition-all">
-                        <i data-lucide="search" class="w-5 h-5"></i>
-                    </button>
-                    
-                    <button class="md:hidden w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
-                        <i data-lucide="menu" class="w-5 h-5"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Search Overlay -->
-        <div id="searchOverlay" class="hidden absolute top-full left-0 right-0 bg-white border-b border-gray-200 shadow-lg p-4 animate-fade-in">
-            <div class="max-w-3xl mx-auto">
-                <div class="relative">
-                    <input type="search" placeholder="Search articles..." class="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 focus:border-brand-red focus:ring-2 focus:ring-brand-red/20 outline-none transition-all">
-                    <i data-lucide="search" class="w-5 h-5 text-gray-400 absolute left-4 top-1/2 -translate-y-1/2"></i>
-                </div>
             </div>
         </div>
     </header>
 
-    <!-- Secondary Header -->
-    <div class="bg-gray-900 text-white py-3">
-        <div class="max-w-7xl mx-auto px-4 flex items-center justify-between">
-            <div class="flex items-center gap-4 text-sm">
-                <button class="flex items-center gap-2 hover:text-brand-red transition-colors">
-                    <i data-lucide="menu" class="w-4 h-4"></i>
-                    <span class="hidden sm:inline">Menu</span>
-                </button>
-                <span class="text-gray-500">|</span>
-                <span class="text-gray-300 flex items-center gap-2">
-                    <i data-lucide="calendar" class="w-4 h-4"></i>
-                    Saturday, January 17, 2026
-                </span>
+    <!-- Main -->
+    <main class="max-w-7xl mx-auto px-4 py-8 grid lg:grid-cols-12 gap-8">
+
+        <!-- Article -->
+        <article class="lg:col-span-8 animate-slide-up" id="article">
+            <h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold font-display text-gray-900 leading-tight mb-6">Pixel-Perfect Article Template</h1>
+
+            <!-- Table of Contents -->
+            <div class="bg-white p-4 rounded-xl border mb-6">
+                <h2 class="font-semibold text-lg mb-2">Table of Contents</h2>
+                <ul class="space-y-1">
+                    <li class="toc-link" data-num="1" onclick="scrollToSection('toc-section-1')">Share Buttons</li>
+                    <li class="toc-link" data-num="2" onclick="scrollToSection('toc-section-2')">Newsletter Subscription</li>
+                    <li class="toc-link" data-num="3" onclick="scrollToSection('toc-section-3')">Previous/Next Articles</li>
+                    <li class="toc-link" data-num="4" onclick="scrollToSection('toc-section-4')">Author Bio Box</li>
+                    <li class="toc-link" data-num="5" onclick="scrollToSection('toc-section-5')">Sidebar Widgets</li>
+                </ul>
             </div>
-            <div class="flex items-center gap-4">
-                <button onclick="toggleDarkMode()" class="flex items-center gap-2 text-sm hover:text-brand-red transition-colors">
-                    <i data-lucide="moon" class="w-4 h-4"></i>
-                    <span class="hidden sm:inline">Dark Mode</span>
-                </button>
-                <a href="/israel-vs-switzerland/" class="flex items-center gap-2 text-sm hover:text-brand-red transition-colors">
-                    <i data-lucide="shuffle" class="w-4 h-4"></i>
-                    <span class="hidden sm:inline">Random</span>
-                </a>
-            </div>
-        </div>
-    </div>
 
-    <!-- Breadcrumb -->
-    <div class="max-w-7xl mx-auto px-4 py-4">
-        <nav class="flex items-center gap-2 text-sm text-gray-500">
-            <a href="/" class="hover:text-brand-red transition-colors">Home</a>
-            <i data-lucide="chevron-right" class="w-4 h-4"></i>
-            <a href="/category/reviews/" class="hover:text-brand-red transition-colors">Reviews</a>
-            <i data-lucide="chevron-right" class="w-4 h-4"></i>
-            <span class="text-gray-900 font-medium truncate max-w-xs sm:max-w-md">When bundles run out, the game doesn't stop</span>
-        </nav>
-    </div>
+            <div class="article-content text-lg">
+                <h2 id="toc-section-1">Share Buttons</h2>
+                <div class="flex gap-3 my-4">
+                    <a href="#" class="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center hover:bg-blue-700"><i data-lucide="facebook" class="w-5 h-5"></i></a>
+                    <a href="#" class="w-10 h-10 rounded-full bg-sky-400 text-white flex items-center justify-center hover:bg-sky-500"><i data-lucide="twitter" class="w-5 h-5"></i></a>
+                    <button onclick="copyLink()" class="w-10 h-10 rounded-full bg-gray-200 text-gray-700 flex items-center justify-center hover:bg-gray-300"><i data-lucide="link" class="w-5 h-5"></i></button>
+                    <button onclick="window.print()" class="w-10 h-10 rounded-full bg-gray-200 text-gray-700 flex items-center justify-center hover:bg-gray-300"><i data-lucide="printer" class="w-5 h-5"></i></button>
+                </div>
 
-    <!-- Main Content -->
-    <main class="max-w-7xl mx-auto px-4 pb-16">
-        <div class="grid lg:grid-cols-12 gap-8">
-            <!-- Article Content -->
-            <article class="lg:col-span-8 animate-slide-up">
-                <!-- Category Badge -->
-                <div class="mb-4">
-                    <a href="/category/reviews/" class="inline-flex items-center gap-2 px-4 py-1.5 bg-brand-red/10 text-brand-red rounded-full text-sm font-semibold hover:bg-brand-red hover:text-white transition-all">
-                        Reviews
+                <h2 id="toc-section-2">Newsletter Subscription</h2>
+                <form class="my-4 space-y-3">
+                    <input type="email" placeholder="Your email address" class="w-full px-4 py-2 rounded-lg bg-gray-100 border border-gray-300 focus:outline-none">
+                    <button type="submit" class="w-full py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700">Subscribe</button>
+                </form>
+
+                <h2 id="toc-section-3">Previous/Next Articles</h2>
+                <div class="grid sm:grid-cols-2 gap-4 my-4">
+                    <a href="#" class="block p-4 border rounded-xl hover-lift hover:border-red-600 transition-all">
+                        <img src="https://via.placeholder.com/150" alt="Prev" class="w-full rounded-lg mb-2">
+                        <p class="text-gray-800 font-semibold">Previous Article Title</p>
+                    </a>
+                    <a href="#" class="block p-4 border rounded-xl hover-lift hover:border-red-600 transition-all">
+                        <img src="https://via.placeholder.com/150" alt="Next" class="w-full rounded-lg mb-2">
+                        <p class="text-gray-800 font-semibold">Next Article Title</p>
                     </a>
                 </div>
 
-                <!-- Title -->
-                <h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold font-display text-gray-900 leading-tight mb-6">
-                    When bundles run out, the game doesn't stop- SportPesa Kenya's USSD Casino is changing how Kenyans play
-                </h1>
-
-                <!-- Meta -->
-                <div class="flex flex-wrap items-center gap-4 text-sm text-gray-500 mb-8 pb-8 border-b border-gray-200">
-                    <div class="flex items-center gap-2">
-                        <div class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
-                            <i data-lucide="user" class="w-4 h-4"></i>
-                        </div>
-                        <span class="font-medium text-gray-900">multibet</span>
-                    </div>
-                    <span class="hidden sm:inline">•</span>
-                    <div class="flex items-center gap-2">
-                        <i data-lucide="calendar" class="w-4 h-4"></i>
-                        <span>December 18, 2025</span>
-                    </div>
-                    <span class="hidden sm:inline">•</span>
-                    <div class="flex items-center gap-2">
-                        <i data-lucide="clock" class="w-4 h-4"></i>
-                        <span>5 min read</span>
-                    </div>
-                </div>
-
-                <!-- Featured Image -->
-                <div class="relative mb-8 rounded-2xl overflow-hidden group">
-                    <img src="https://i.imgur.com/2H9nodm.jpg" alt="SportPesa Kenya USSD Casino" class="w-full h-auto object-cover transform group-hover:scale-105 transition-transform duration-700">
-                    <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                </div>
-
-                <!-- Article Body -->
-                <div class="article-content text-lg">
-                    <p class="text-xl text-gray-600 leading-relaxed mb-6 font-medium">
-                        Every Kenyan mobile user knows the moment. You're ready to do something now then the bundles are low, the network drags, or your phone decides today is not the day. SportPesa Kenya has built for that exact situation.
-                    </p>
-
-                    <p>
-                        With the launch of <a href="https://www.ke.sportpesa.com/en/casino/aviator" target="_blank" class="text-brand-red font-semibold hover:underline decoration-2 underline-offset-4">SportPesa Kenya USSD Casino</a>, players can now access Casino games without data, without downloads, and without a smartphone. One short dial code is all it takes and the game keeps going.
-                    </p>
-
-                    <p>
-                        In a country where USSD powers daily life, SportPesa Kenya has brought Casino gaming to where Kenyans already are. Instead of forcing players onto heavy apps or data-hungry pages, the platform has introduced <a href="https://www.ke.sportpesa.com/en/casino/aviator" target="_blank" class="text-brand-red font-semibold hover:underline decoration-2 underline-offset-4">USSD Casino games in Kenya</a> as a direct, familiar way to play Casino using the phone you already own. It's not a flashy upgrade. It's a practical one. And that's why it's quickly becoming one of the most talked-about shifts in Kenya's online gaming space.
-                    </p>
-
-                    <!-- Table of Contents -->
-                    <div class="bg-gray-50 rounded-xl p-6 my-8 border border-gray-200">
-                        <div class="flex items-center justify-between mb-4">
-                            <h3 class="font-display font-bold text-lg text-gray-900">Table of Contents</h3>
-                            <button onclick="toggleToc()" class="text-sm text-brand-red font-medium hover:underline">Hide</button>
-                        </div>
-                        <nav id="toc" class="space-y-3">
-                            <a href="#section-1" class="toc-link block text-gray-700 hover:text-brand-red transition-colors text-sm font-medium" data-num="1">The Casino now lives where Kenya already lives on USSD</a>
-                            <a href="#section-2" class="toc-link block text-gray-700 hover:text-brand-red transition-colors text-sm font-medium" data-num="2">Casino on any phone, not just smartphones</a>
-                            <a href="#section-3" class="toc-link block text-gray-700 hover:text-brand-red transition-colors text-sm font-medium" data-num="3">Why players feel the difference immediately</a>
-                            <a href="#section-4" class="toc-link block text-gray-700 hover:text-brand-red transition-colors text-sm font-medium" data-num="4">More than a feature, a shift in how gaming works</a>
-                            <a href="#section-5" class="toc-link block text-gray-700 hover:text-brand-red transition-colors text-sm font-medium" data-num="5">Ready to play? Start in under a minute</a>
-                            <a href="#section-6" class="toc-link block text-gray-700 hover:text-brand-red transition-colors text-sm font-medium" data-num="6">Responsible gaming comes first</a>
-                        </nav>
-                    </div>
-
-                    <h2 id="section-1">The Casino now lives where Kenya already lives on USSD</h2>
-                    <p>
-                        USSD is not new to Kenyans. It's how people check balances, move money, confirm transactions, and get things done fast. By bringing the Casino to USSD, SportPesa Kenya has aligned gaming with real digital behaviour. The result is a <a href="https://www.ke.sportpesa.com/en/casino/aviator" target="_blank" class="text-brand-red font-semibold hover:underline decoration-2 underline-offset-4">data-free Casino experience</a> that works on both smartphones and feature phones. No downloads. No updates. No waiting. Just dial, select, and play.
-                    </p>
-
-                    <h2 id="section-2">Casino on any phone, not just smartphones</h2>
-                    <p>
-                        One of the biggest strengths of the USSD Casino launch is inclusion. Kenya's mobile ecosystem is diverse and SportPesa Kenya has built a casino experience that does not exclude anyone based on device. This is what makes <a href="https://www.ke.sportpesa.com/en/casino/aviator" target="_blank" class="text-brand-red font-semibold hover:underline decoration-2 underline-offset-4">Casino on USSD in Kenya</a> feel instantly familiar and genuinely useful. For players, this means:
-                    </p>
-                    <ul>
-                        <li>When data runs out, the Casino is still available</li>
-                        <li>When the network slows, the journey stays simple</li>
-                        <li>When you want quick access, there's no setup required</li>
-                    </ul>
-
-                    <h2 id="section-3">Why players feel the difference immediately</h2>
-                    <p>
-                        Many platforms talk about "user experience." This one changes it. Because USSD is already trusted for everyday actions, players can focus on the game itself, not on learning a new system.
-                    </p>
-                    <blockquote class="border-l-4 border-brand-red pl-6 my-8 italic text-gray-700 text-lg">
-                        "Our focus is a secure, straightforward flow, clear steps, familiar navigation, and a consistent experience across the SportPesa platform," <span class="font-semibold text-gray-900 not-italic">— Willis Ojwang, Head of PR</span>
-                    </blockquote>
-                    <p>
-                        With <a href="https://www.ke.sportpesa.com/en/casino/aviator" target="_blank" class="text-brand-red font-semibold hover:underline decoration-2 underline-offset-4">SportPesa Kenya USSD</a>, the journey becomes:
-                    </p>
-                    <ul>
-                        <li><strong>More instant</strong> — fewer steps from decision to play</li>
-                        <li><strong>More practical</strong> — no dependence on bundles or downloads</li>
-                        <li><strong>More consistent</strong> — the same simple flow every time</li>
-                    </ul>
-
-                    <h2 id="section-4">More than a feature, a shift in how gaming works</h2>
-                    <p>
-                        This launch goes beyond a product update. It reflects how Kenya already interacts with technology: fast, simple, and purpose-driven. By choosing access first, SportPesa Kenya is building long-term brand trust. It doesn't ask players to change habits. It meets them where they are and gives them something that works better. Within the wider ecosystem, this approach also complements innovations like <a href="https://www.ke.sportpesa.com/en/casino/aviator" target="_blank" class="text-brand-red font-semibold hover:underline decoration-2 underline-offset-4">SportPesa One Wallet</a>, creating a smoother, more unified experience across the platform.
-                    </p>
-
-                    <h2 id="section-5">Ready to play? Start in under a minute</h2>
-                    <p>
-                        Players can also log in online via the <a href="https://www.ke.sportpesa.com/en/casino/aviator" target="_blank" class="text-brand-red font-semibold hover:underline decoration-2 underline-offset-4">SportPesa Kenya platform</a> to explore more Casino options. New users are encouraged to learn how to play on SportPesa Kenya and understand responsible play before getting started. Getting into the Casino has never been faster:
-                    </p>
-                    
-                    <!-- Steps -->
-                    <div class="grid sm:grid-cols-3 gap-4 my-8">
-                        <div class="bg-brand-red text-white rounded-xl p-6 text-center hover-lift">
-                            <div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-3">
-                                <span class="text-2xl font-bold">1</span>
-                            </div>
-                            <p class="font-semibold">Dial *790#</p>
-                        </div>
-                        <div class="bg-gray-900 text-white rounded-xl p-6 text-center hover-lift">
-                            <div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-3">
-                                <span class="text-2xl font-bold">2</span>
-                            </div>
-                            <p class="font-semibold">Select Casino</p>
-                        </div>
-                        <div class="bg-brand-red text-white rounded-xl p-6 text-center hover-lift">
-                            <div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-3">
-                                <span class="text-2xl font-bold">3</span>
-                            </div>
-                            <p class="font-semibold">Start playing</p>
-                        </div>
-                    </div>
-
-                    <h2 id="section-6">Responsible gaming comes first</h2>
-                    <p>
-                        The goal is simple, keep gaming enjoyable, controlled, and positive. With USSD Casino games in Kenya, SportPesa Kenya has redefined convenience. The Casino no longer depends on bundles, storage space, or smartphones. It depends on one thing: access. SportPesa Kenya also continues to reinforce responsible participation:
-                    </p>
-                    <ul>
-                        <li>18+ only</li>
-                        <li>Play for entertainment, not pressure</li>
-                        <li>Set limits and never chase losses</li>
-                    </ul>
-                    
-                    <div class="bg-gradient-to-r from-brand-red to-red-600 text-white rounded-xl p-6 my-8 text-center">
-                        <p class="text-lg font-semibold mb-2">Dial *790# and choose a casino. Play instantly.</p>
-                        <p class="text-white/80">It's not hype. It's how gaming fits real Kenyan life.</p>
-                    </div>
-                </div>
-
-                <!-- Share -->
-                <div class="flex items-center justify-between py-6 border-t border-b border-gray-200 my-8">
-                    <span class="font-semibold text-gray-900 flex items-center gap-2">
-                        <i data-lucide="share-2" class="w-5 h-5"></i>
-                        Share this Article
-                    </span>
-                    <div class="flex gap-3">
-                        <a href="https://www.facebook.com/sharer/sharer.php?u=/when-bundles-run-out-the-game-doesnt-stop-sportpesa-kenyas-ussd-casino-is-changing-how-kenyans-play/" target="_blank" class="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center hover:scale-110 transition-transform">
-                            <i data-lucide="facebook" class="w-5 h-5"></i>
-                        </a>
-                        <a href="https://twitter.com/intent/tweet?text=When+bundles+run+out%2C+the+game+doesn%E2%80%99t+stop-+SportPesa+Kenya%E2%80%99s+USSD+Casino+is+changing+how+Kenyans+play&url=/when-bundles-run-out-the-game-doesnt-stop-sportpesa-kenyas-ussd-casino-is-changing-how-kenyans-play/" target="_blank" class="w-10 h-10 rounded-full bg-gray-900 text-white flex items-center justify-center hover:scale-110 transition-transform">
-                            <i data-lucide="twitter" class="w-5 h-5"></i>
-                        </a>
-                        <button onclick="copyLink()" class="w-10 h-10 rounded-full bg-gray-200 text-gray-700 flex items-center justify-center hover:scale-110 transition-transform relative" id="copyBtn">
-                            <i data-lucide="link" class="w-5 h-5"></i>
-                            <span id="copyTooltip" class="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 transition-opacity">Copied!</span>
-                        </button>
-                        <button onclick="window.print()" class="w-10 h-10 rounded-full bg-gray-200 text-gray-700 flex items-center justify-center hover:scale-110 transition-transform">
-                            <i data-lucide="printer" class="w-5 h-5"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Navigation -->
-                <div class="grid sm:grid-cols-2 gap-4 mb-8">
-                    <a href="/every-goal-can-pay-how-sportpesa-kenyas-goal-goal-and-1x2-markets-are-putting-instant-wins-in-fans-hands/" class="group flex gap-4 p-4 rounded-xl border border-gray-200 hover:border-brand-red hover:shadow-lg transition-all">
-                        <img src="https://i.imgur.com/wHOPtRW.jpg" alt="Previous" class="w-20 h-20 object-cover rounded-lg shrink-0">
-                        <div>
-                            <span class="text-xs text-brand-red font-semibold uppercase flex items-center gap-1 mb-1">
-                                <i data-lucide="arrow-left" class="w-3 h-3"></i>
-                                Previous
-                            </span>
-                            <h4 class="font-semibold text-gray-900 line-clamp-2 group-hover:text-brand-red transition-colors">Every goal can pay- How SportPesa Kenya's Goal Goal and 1X2 markets...</h4>
-                        </div>
-                    </a>
-                    <a href="/mashemeji-lit-the-fuse-now-the-sportpesa-league-is-the-weekend-kenya-cant-ignore/" class="group flex gap-4 p-4 rounded-xl border border-gray-200 hover:border-brand-red hover:shadow-lg transition-all text-right sm:text-left sm:flex-row-reverse">
-                        <img src="https://i.imgur.com/PqIWVIz.jpg" alt="Next" class="w-20 h-20 object-cover rounded-lg shrink-0">
-                        <div>
-                            <span class="text-xs text-brand-red font-semibold uppercase flex items-center gap-1 mb-1 sm:justify-end">
-                                Next
-                                <i data-lucide="arrow-right" class="w-3 h-3"></i>
-                            </span>
-                            <h4 class="font-semibold text-gray-900 line-clamp-2 group-hover:text-brand-red transition-colors">Mashemeji lit the fuse- Now the SportPesa League is the weekend Kenya can't ignore</h4>
-                        </div>
-                    </a>
-                </div>
-
-                <!-- Author -->
-                <div class="bg-gray-50 rounded-xl p-6 flex gap-4 items-start">
-                    <img src="https://secure.gravatar.com/avatar/e993f5a98537b68e461ce3a03523c8f44241369a8c44cc19b699b4b97cf3dd32?s=100&d=mm&r=g" alt="multibet" class="w-16 h-16 rounded-full border-2 border-white shadow-md">
+                <h2 id="toc-section-4">Author Bio Box</h2>
+                <div class="bg-gray-50 rounded-xl p-6 flex gap-4 items-start my-4 hover-lift transition-shadow">
+                    <img src="https://secure.gravatar.com/avatar?d=mm&s=100" alt="Author" class="w-16 h-16 rounded-full border-2 border-white shadow-md">
                     <div>
-                        <a href="/author/user_multi_ad_bet_min/" class="font-bold text-gray-900 hover:text-brand-red transition-colors">multibet</a>
-                        <p class="text-sm text-gray-500 mt-1">Sports betting analyst and gaming industry expert covering the Kenyan market since 2018.</p>
-                    </div>
-                </div>
-            </article>
-
-            <!-- Sidebar -->
-            <aside class="lg:col-span-4 space-y-6">
-                <!-- Related Posts -->
-                <div class="bg-white rounded-xl border border-gray-200 p-6">
-                    <h3 class="font-display font-bold text-lg text-gray-900 mb-4 flex items-center gap-2">
-                        <i data-lucide="newspaper" class="w-5 h-5 text-brand-red"></i>
-                        Related Posts
-                    </h3>
-                    <div class="space-y-4">
-                        <a href="/every-goal-can-pay-how-sportpesa-kenyas-goal-goal-and-1x2-markets-are-putting-instant-wins-in-fans-hands/" class="group flex gap-3">
-                            <img src="https://i.imgur.com/2H9nodm.jpg" alt="" class="w-20 h-14 object-cover rounded-lg shrink-0">
-                            <div>
-                                <h4 class="text-sm font-semibold text-gray-900 line-clamp-2 group-hover:text-brand-red transition-colors">Every goal can pay- How SportPesa Kenya's Goal Goal and 1X2 markets...</h4>
-                                <span class="text-xs text-gray-500">Dec 18, 2025</span>
-                            </div>
-                        </a>
-                        <a href="/how-sportpesa-aviator-is-becoming-kenyas-fastest-growing-online-casino-game-and-why-the-country-cant-stop-playing-it/" class="group flex gap-3">
-                            <img src="https://i.imgur.com/FlRylsY.jpg" alt="" class="w-20 h-14 object-cover rounded-lg shrink-0">
-                            <div>
-                                <h4 class="text-sm font-semibold text-gray-900 line-clamp-2 group-hover:text-brand-red transition-colors">How SportPesa Aviator is becoming Kenya's fastest-growing online...</h4>
-                                <span class="text-xs text-gray-500">Nov 28, 2025</span>
-                            </div>
-                        </a>
-                        <a href="/sportpesa-aviator-the-smart-way-to-win-in-kenyas-fastest-growing-casino-game/" class="group flex gap-3">
-                            <img src="https://i.imgur.com/J5P6sSa.jpg" alt="" class="w-20 h-14 object-cover rounded-lg shrink-0">
-                            <div>
-                                <h4 class="text-sm font-semibold text-gray-900 line-clamp-2 group-hover:text-brand-red transition-colors">SportPesa Aviator: The smart way to win in Kenya's fastest-growing...</h4>
-                                <span class="text-xs text-gray-500">Oct 25, 2025</span>
-                            </div>
-                        </a>
+                        <h3 class="font-bold text-gray-900">Author Name</h3>
+                        <p class="text-sm text-gray-500">Expert writer and analyst covering betting and gaming since 2018.</p>
                     </div>
                 </div>
 
-                <!-- Newsletter -->
-                <div class="bg-gradient-to-br from-gray-900 to-gray-800 text-white rounded-xl p-6">
-                    <h3 class="font-display font-bold text-lg mb-2">Stay Updated</h3>
-                    <p class="text-gray-300 text-sm mb-4">Get the latest betting tips and news delivered to your inbox.</p>
-                    <form class="space-y-3">
-                        <input type="email" placeholder="Your email address" class="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white placeholder-gray-400 focus:outline-none focus:border-brand-red">
-                        <button type="submit" class="w-full py-2 bg-brand-red hover:bg-red-600 rounded-lg font-semibold transition-colors">
-                            Subscribe
-                        </button>
-                    </form>
-                </div>
+                <h2 id="toc-section-5">Sidebar Widgets</h2>
+                <p>The sidebar contains related posts, categories, and popular posts. Fully responsive and interactive.</p>
+            </div>
+        </article>
 
-                <!-- Quick Links -->
-                <div class="bg-white rounded-xl border border-gray-200 p-6">
-                    <h3 class="font-display font-bold text-lg text-gray-900 mb-4">Quick Links</h3>
-                    <nav class="space-y-2">
-                        <a href="/" class="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-colors group">
-                            <span class="text-gray-700 group-hover:text-brand-red transition-colors">Home</span>
-                            <i data-lucide="chevron-right" class="w-4 h-4 text-gray-400"></i>
-                        </a>
-                        <a href="/category/reviews/" class="flex items-center justify-between p-3 rounded-lg bg-brand-red/5 text-brand-red font-medium">
-                            <span>Reviews</span>
-                            <i data-lucide="chevron-right" class="w-4 h-4"></i>
-                        </a>
-                        <a href="/category/predictions/" class="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-colors group">
-                            <span class="text-gray-700 group-hover:text-brand-red transition-colors">Predictions</span>
-                            <i data-lucide="chevron-right" class="w-4 h-4 text-gray-400"></i>
-                        </a>
-                        <a href="/category/news/" class="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-colors group">
-                            <span class="text-gray-700 group-hover:text-brand-red transition-colors">News</span>
-                            <i data-lucide="chevron-right" class="w-4 h-4 text-gray-400"></i>
-                        </a>
-                    </nav>
-                </div>
-            </aside>
-        </div>
+        <!-- Sidebar -->
+        <aside class="lg:col-span-4 space-y-6">
+            <div class="bg-white rounded-xl border border-gray-200 p-6 hover-lift transition-shadow">
+                <h3 class="font-display font-bold text-lg text-gray-900 mb-4">Related Posts</h3>
+                <ul class="space-y-3">
+                    <li><a href="#" class="text-gray-700 hover:text-red-600">Example Related Post 1</a></li>
+                    <li><a href="#" class="text-gray-700 hover:text-red-600">Example Related Post 2</a></li>
+                    <li><a href="#" class="text-gray-700 hover:text-red-600">Example Related Post 3</a></li>
+                </ul>
+            </div>
+
+            <div class="bg-white rounded-xl border border-gray-200 p-6 hover-lift transition-shadow">
+                <h3 class="font-display font-bold text-lg text-gray-900 mb-4">Categories</h3>
+                <ul class="space-y-2">
+                    <li><a href="#" class="text-gray-700 hover:text-red-600">Predictions</a></li>
+                    <li><a href="#" class="text-gray-700 hover:text-red-600">Reviews</a></li>
+                    <li><a href="#" class="text-gray-700 hover:text-red-600">News</a></li>
+                </ul>
+            </div>
+
+            <div class="bg-white rounded-xl border border-gray-200 p-6 hover-lift transition-shadow">
+                <h3 class="font-display font-bold text-lg text-gray-900 mb-4">Popular Posts</h3>
+                <ul class="space-y-3">
+                    <li><a href="#" class="text-gray-700 hover:text-red-600">Popular Post 1</a></li>
+                    <li><a href="#" class="text-gray-700 hover:text-red-600">Popular Post 2</a></li>
+                    <li><a href="#" class="text-gray-700 hover:text-red-600">Popular Post 3</a></li>
+                </ul>
+            </div>
+        </aside>
+
     </main>
 
-    <!-- Footer -->
-    <footer class="bg-gray-900 text-white pt-12 pb-6">
-        <div class="max-w-7xl mx-auto px-4">
-            <div class="grid md:grid-cols-4 gap-8 mb-8">
-                <div>
-                    <div class="flex items-center gap-3 mb-4">
-                        <div class="w-10 h-10 bg-brand-red rounded-lg flex items-center justify-center">
-                            <span class="text-white font-bold font-display">M</span>
-                        </div>
-                        <span class="text-xl font-bold font-display">MULTIBET</span>
-                    </div>
-                    <p class="text-gray-400 text-sm">Your trusted source for SportPesa Mega Jackpot predictions and betting insights in Kenya.</p>
-                </div>
-                <div>
-                    <h4 class="font-semibold mb-4">Categories</h4>
-                    <ul class="space-y-2 text-sm text-gray-400">
-                        <li><a href="/category/reviews/" class="hover:text-brand-red transition-colors">Reviews</a></li>
-                        <li><a href="/category/predictions/" class="hover:text-brand-red transition-colors">Predictions</a></li>
-                        <li><a href="/category/news/" class="hover:text-brand-red transition-colors">News</a></li>
-                        <li><a href="/category/tips/" class="hover:text-brand-red transition-colors">Betting Tips</a></li>
-                    </ul>
-                </div>
-                <div>
-                    <h4 class="font-semibold mb-4">Legal</h4>
-                    <ul class="space-y-2 text-sm text-gray-400">
-                        <li><a href="#" class="hover:text-brand-red transition-colors">Terms of Service</a></li>
-                        <li><a href="#" class="hover:text-brand-red transition-colors">Privacy Policy</a></li>
-                        <li><a href="#" class="hover:text-brand-red transition-colors">Responsible Gaming</a></li>
-                        <li><a href="#" class="hover:text-brand-red transition-colors">18+ Only</a></li>
-                    </ul>
-                </div>
-                <div>
-                    <h4 class="font-semibold mb-4">Connect</h4>
-                    <div class="flex gap-3">
-                        <a href="https://www.bettingtips.co.ke/" target="_blank" class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-brand-red transition-colors">
-                            <i data-lucide="facebook" class="w-5 h-5"></i>
-                        </a>
-                        <a href="#" class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-brand-red transition-colors">
-                            <i data-lucide="twitter" class="w-5 h-5"></i>
-                        </a>
-                        <a href="#" class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-brand-red transition-colors">
-                            <i data-lucide="instagram" class="w-5 h-5"></i>
-                        </a>
-                    </div>
-                </div>
-            </div>
-            <div class="border-t border-gray-800 pt-6 flex flex-col md:flex-row items-center justify-between gap-4">
-                <p class="text-sm text-gray-500">Copyright © 2026 MULTIBET | Powered by News Magazine X</p>
-                <button onclick="scrollToTop()" class="flex items-center gap-2 text-sm text-gray-400 hover:text-brand-red transition-colors">
-                    Back to Top
-                    <i data-lucide="arrow-up" class="w-4 h-4"></i>
-                </button>
-            </div>
-        </div>
-    </footer>
-
     <script>
-        // Initialize Lucide icons
-        lucide.createIcons();
-        
         // Reading Progress
-        window.addEventListener('scroll', () => {
-            const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
-            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-            const scrolled = (winScroll / height) * 100;
-            document.getElementById('readingProgress').style.width = scrolled + "%";
+        document.addEventListener('scroll', () => {
+            const progress = document.getElementById('readingProgress');
+            const scrollTop = window.scrollY;
+            const docHeight = document.body.scrollHeight - window.innerHeight;
+            progress.style.width = ((scrollTop / docHeight) * 100) + '%';
         });
-        
-        // Toggle Search
-        function toggleSearch() {
-            const overlay = document.getElementById('searchOverlay');
-            overlay.classList.toggle('hidden');
-            if (!overlay.classList.contains('hidden')) {
-                overlay.querySelector('input').focus();
-            }
+
+        // Smooth scroll for TOC
+        function scrollToSection(id) {
+            document.getElementById(id).scrollIntoView({behavior:'smooth'});
         }
-        
-        // Toggle TOC
-        function toggleToc() {
-            const toc = document.getElementById('toc');
-            const btn = event.target;
-            if (toc.style.display === 'none') {
-                toc.style.display = 'block';
-                btn.textContent = 'Hide';
-            } else {
-                toc.style.display = 'none';
-                btn.textContent = 'Show';
-            }
-        }
-        
-        // Copy Link
+
+        // Copy link
         function copyLink() {
             navigator.clipboard.writeText(window.location.href);
-            const tooltip = document.getElementById('copyTooltip');
-            tooltip.style.opacity = '1';
-            setTimeout(() => {
-                tooltip.style.opacity = '0';
-            }, 2000);
+            alert('Link copied!');
         }
-        
-        // Scroll to Top
-        function scrollToTop() {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-        
-        // Dark Mode Toggle (Demo)
-        function toggleDarkMode() {
-            document.body.classList.toggle('dark');
-            // In real implementation, this would toggle a 'dark' class with proper dark mode styles
-            alert('Dark mode toggle demo - would switch to dark theme');
-        }
-        
-        // Smooth scroll for TOC links
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                if (target) {
-                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }
+
+        // Animate on scroll
+        const observer = new IntersectionObserver(entries => {
+            entries.forEach(entry => {
+                if(entry.isIntersecting) entry.target.classList.add('visible');
             });
-        });
+        }, { threshold: 0.1 });
+        document.querySelectorAll('.animate-slide-up').forEach(el => observer.observe(el));
+        lucide.createIcons();
     </script>
 </body>
 </html>
