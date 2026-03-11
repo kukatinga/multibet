@@ -37,7 +37,7 @@ jobs:
 
       - name: Create simple Python script
         run: |
-          cat > apply_design.py << 'EOF'
+          cat > apply_design.py << 'END_PYTHON1'
 #!/usr/bin/env python3
 import os
 import glob
@@ -65,14 +65,14 @@ for f in html_files[:3]:
         print(f"❌ Cannot read {f}: {e}")
 
 print("\n" + "=" * 50)
-EOF
+END_PYTHON1
 
       - name: Run test script
         run: python3 apply_design.py
         
       - name: Create fixed redesign script
         run: |
-          cat > redesign.py << 'EOF'
+          cat > redesign.py << 'END_PYTHON2'
 #!/usr/bin/env python3
 import os
 import glob
@@ -131,7 +131,7 @@ def main():
 
 if __name__ == '__main__':
     main()
-EOF
+END_PYTHON2
 
       - name: Run redesign script
         run: python3 redesign.py
