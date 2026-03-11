@@ -1,12 +1,34 @@
-def build_page(title, description, category, date, image, content):
-    with open("template.html", "r", encoding="utf-8") as f:
-        template = f.read()
+name: Template-Based Redesign
+on:
+  workflow_dispatch:
 
-    html = template.replace("{{TITLE}}", title)
-    html = html.replace("{{DESCRIPTION}}", description)
-    html = html.replace("{{CATEGORY}}", category)
-    html = html.replace("{{DATE}}", date)
-    html = html.replace("{{IMAGE}}", image)
-    html = html.replace("{{CONTENT}}", content)
+jobs:
+  redesign:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-    return html
+      - name: Create template file
+        run: |
+          cat > template.html << 'EOF'
+          [PASTE THE ENTIRE TEMPLATE HTML FROM STEP 1 HERE]
+          EOF
+
+      - name: Create converter script
+        run: |
+          cat > convert.py << 'EOF'
+          [PASTE THE ENTIRE PYTHON SCRIPT FROM STEP 2 HERE]
+          EOF
+
+      - name: Run converter
+        run: python3 convert.py
+
+      - name: Commit changes
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: "Template-based redesign: All pages now use master template"
+          file_pattern: '*.html'
