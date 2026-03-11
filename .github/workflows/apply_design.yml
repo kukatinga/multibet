@@ -1,8 +1,6 @@
 name: Apply Perfect Design
 on:
   workflow_dispatch
-  push:
-    branches: [ main ]
 
 jobs:
   redesign:
@@ -33,7 +31,6 @@ jobs:
       - name: Find template file
         id: find_template
         run: |
-          # Try to find the template file
           TEMPLATE_FILE=$(find . -name "*.html" -type f | head -1)
           echo "template_file=$TEMPLATE_FILE" >> $GITHUB_OUTPUT
           echo "Using template: $TEMPLATE_FILE"
@@ -49,23 +46,20 @@ print("=" * 50)
 print("SIMPLE TEST SCRIPT")
 print("=" * 50)
 
-# List all HTML files
 html_files = glob.glob('**/*.html', recursive=True)
 print(f"Found {len(html_files)} HTML files:")
 
-for i, f in enumerate(html_files[:10]):  # Show first 10
+for i, f in enumerate(html_files[:10]):
     print(f"  {i+1}. {f}")
 
 if len(html_files) > 10:
     print(f"  ... and {len(html_files)-10} more")
 
-# Check if we can read them
-for f in html_files[:3]:  # Try first 3
+for f in html_files[:3]:
     try:
         with open(f, 'r', encoding='utf-8', errors='ignore') as file:
             content = file.read()
             print(f"\n✅ Can read: {f} ({len(content)} bytes)")
-            # Show first 200 chars
             print(f"Preview: {content[:200]}...")
     except Exception as e:
         print(f"❌ Cannot read {f}: {e}")
@@ -80,10 +74,6 @@ EOF
         run: |
           cat > redesign.py << 'EOF'
 #!/usr/bin/env python3
-"""
-Simple redesign script that just copies the design from one page to others
-"""
-
 import os
 import glob
 import re
@@ -93,7 +83,6 @@ def main():
     print("SIMPLE REDESIGN SCRIPT")
     print("=" * 60)
     
-    # Find all HTML files
     all_files = glob.glob('**/*.html', recursive=True)
     print(f"Found {len(all_files)} HTML files")
     
@@ -101,11 +90,9 @@ def main():
         print("❌ No HTML files found!")
         return
     
-    # Use the first HTML file as template
     template_file = all_files[0]
     print(f"Using template: {template_file}")
     
-    # Read template
     with open(template_file, 'r', encoding='utf-8', errors='ignore') as f:
         template = f.read()
     
@@ -118,26 +105,19 @@ def main():
         print(f"\nProcessing: {filepath}")
         
         try:
-            # Read current file
             with open(filepath, 'r', encoding='utf-8', errors='ignore') as f:
                 content = f.read()
             
-            # Create backup
             backup = filepath + '.backup'
             with open(backup, 'w', encoding='utf-8') as f:
                 f.write(content)
             
-            # Extract title
             title_match = re.search(r'<title>(.*?)</title>', content)
             title = title_match.group(1) if title_match else "MULTIBET Article"
             
-            # Create new content with template structure
             new_content = template
-            
-            # Simple replacement - just update title for now
             new_content = re.sub(r'<title>.*?</title>', f'<title>{title}</title>', new_content)
             
-            # Write new file
             with open(filepath, 'w', encoding='utf-8') as f:
                 f.write(new_content)
             
