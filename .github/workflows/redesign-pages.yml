@@ -1,4 +1,4 @@
-name: Template-Based Redesign
+name: Redesign Pages
 on:
   workflow_dispatch:
 
@@ -12,23 +12,18 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Create template file
+      - name: Create Python script
         run: |
-          cat > template.html << 'EOF'
-          [PASTE THE ENTIRE TEMPLATE HTML FROM STEP 1 HERE]
+          cat > fix_pages.py << 'EOF'
+          # PASTE THE ENTIRE PYTHON SCRIPT FROM MY PREVIOUS MESSAGE HERE
+          # (The big Python script I just gave you)
           EOF
 
-      - name: Create converter script
-        run: |
-          cat > convert.py << 'EOF'
-          [PASTE THE ENTIRE PYTHON SCRIPT FROM STEP 2 HERE]
-          EOF
-
-      - name: Run converter
-        run: python3 convert.py
+      - name: Run Python script
+        run: python3 fix_pages.py
 
       - name: Commit changes
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
-          commit_message: "Template-based redesign: All pages now use master template"
+          commit_message: "Fix page layouts - Add TOC and proper navigation"
           file_pattern: '*.html'
