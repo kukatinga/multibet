@@ -1,4 +1,4 @@
-name: Redesign Pages - Match First Template
+ name: Redesign Pages V2
 on:
   workflow_dispatch:
 
@@ -15,911 +15,463 @@ jobs:
       - name: Write Python script
         run: |
           cat > /tmp/redesign.py << 'SCRIPTEOF'
-          import os
-          import re
-          import glob
-          from datetime import datetime
-          import random
+          import os, re, glob, random
 
-          # Image pool for fallbacks
           IMGUR_IMAGES = [
-              "https://i.imgur.com/ygFk5oT.jpg", "https://i.imgur.com/rxC9MAj.jpg",
-              "https://i.imgur.com/mG2T8IS.jpg", "https://i.imgur.com/jzFnQlJ.jpg",
-              "https://i.imgur.com/w6dLBn6.jpg", "https://i.imgur.com/z5vDEJs.jpg",
-              "https://i.imgur.com/fhUbwy6.jpg", "https://i.imgur.com/FlRylsY.jpg",
-              "https://i.imgur.com/wHOPtRW.jpg", "https://i.imgur.com/S6J5ZEX.jpg",
-              "https://i.imgur.com/2H9nodm.jpg", "https://i.imgur.com/PqIWVIz.jpg",
-              "https://i.imgur.com/r7MIR8x.jpg", "https://i.imgur.com/ridLkYv.jpg",
-              "https://i.imgur.com/J5P6sSa.jpg", "https://i.imgur.com/2ssF86m.jpg",
+              "https://i.imgur.com/ygFk5oT.jpg","https://i.imgur.com/rxC9MAj.jpg",
+              "https://i.imgur.com/mG2T8IS.jpg","https://i.imgur.com/jzFnQlJ.jpg",
+              "https://i.imgur.com/w6dLBn6.jpg","https://i.imgur.com/z5vDEJs.jpg",
+              "https://i.imgur.com/fhUbwy6.jpg","https://i.imgur.com/FlRylsY.jpg",
+              "https://i.imgur.com/wHOPtRW.jpg","https://i.imgur.com/S6J5ZEX.jpg",
+              "https://i.imgur.com/2H9nodm.jpg","https://i.imgur.com/PqIWVIz.jpg",
+              "https://i.imgur.com/r7MIR8x.jpg","https://i.imgur.com/ridLkYv.jpg",
+              "https://i.imgur.com/J5P6sSa.jpg","https://i.imgur.com/2ssF86m.jpg",
               "https://i.imgur.com/kc2AIq8.jpg",
           ]
 
-          def extract_metadata(html):
-              """Extract all metadata from old HTML"""
-              metadata = {
-                  'title': '',
-                  'description': '',
-                  'date': '',
-                  'category_slug': 'news',
-                  'category_name': 'News',
-                  'featured_image': '',
-                  'content': '',
-                  'read_time': '5'
-              }
-              
-              # Extract title - handle both formats
-              title_match = re.search(r'<title>(.*?)(?:\s*\|\s*MULTIBET)?</title>', html, re.DOTALL)
-              if title_match:
-                  metadata['title'] = title_match.group(1).strip()
-              
-              # Extract meta description
-              desc_match = re.search(r'<meta name="description" content="([^"]*)"', html)
-              if not desc_match:
-                  desc_match = re.search(r'<meta property="og:description" content="([^"]*)"', html)
-              if desc_match:
-                  metadata['description'] = desc_match.group(1)
-              
-              # Extract date from multiple possible locations
-              date_patterns = [
-                  r'<span[^>]*>([A-Za-z]+ \d{1,2}, \d{4})</span>',
-                  r'"datePublished":"([^"T]+)',
-                  r'<time[^>]*>([^<]+)</time>',
-                  r'<div class="[^"]*date[^"]*"[^>]*>([^<]+)</div>'
-              ]
-              for pattern in date_patterns:
-                  date_match = re.search(pattern, html)
-                  if date_match:
-                      metadata['date'] = date_match.group(1).strip()
-                      break
-              
-              # If no date found, use current date
-              if not metadata['date']:
-                  metadata['date'] = datetime.now().strftime('%B %d, %Y')
-              
-              # Extract category
-              cat_match = re.search(r'<a href="/(?:category/)?([^/"]+)/?"[^>]*>([^<]+)</a>.*?(?:Reviews|News|Tips)', html, re.IGNORECASE)
-              if cat_match:
-                  metadata['category_slug'] = cat_match.group(1).lower()
-                  metadata['category_name'] = cat_match.group(2)
-              else:
-                  # Try to determine from URL structure
-                  if '/reviews/' in html:
-                      metadata['category_slug'] = 'reviews'
-                      metadata['category_name'] = 'Reviews'
-                  elif '/predictions/' in html:
-                      metadata['category_slug'] = 'predictions'
-                      metadata['category_name'] = 'Predictions'
-                  elif '/news/' in html:
-                      metadata['category_slug'] = 'news'
-                      metadata['category_name'] = 'News'
-              
-              # Extract featured image
-              img_patterns = [
-                  r'<img[^>]*src="([^"]*)"[^>]*class="[^"]*w-full[^"]*"',
-                  r'<img[^>]*class="[^"]*wp-post-image[^"]*"[^>]*src="([^"]*)"',
-                  r'<meta property="og:image" content="([^"]*)"'
-              ]
-              for pattern in img_patterns:
-                  img_match = re.search(pattern, html)
-                  if img_match:
-                      metadata['featured_image'] = img_match.group(1)
-                      break
-              
-              if not metadata['featured_image']:
-                  metadata['featured_image'] = random.choice(IMGUR_IMAGES)
-              
-              # Extract article content - THIS IS THE KEY PART
-              # Look for the article content in your actual structure
-              content_patterns = [
-                  # Pattern from your second template
-                  r'<div class="article-content[^>]*>(.*?)</div>\s*<div class="flex items-center justify-between',
-                  # Fallback patterns
-                  r'<div class="entry-content[^>]*>(.*?)</div>\s*<div class="(?:post|article)-footer',
-                  r'<article[^>]*>(.*?)</article>',
-                  r'<main[^>]*>.*?<article[^>]*>(.*?)</article>',
-                  r'<div class="[^"]*content[^"]*"[^>]*>(.*?)</div>\s*<(?:div|section)[^>]*class="[^"]*(?:share|social|related)'
-              ]
-              
-              for pattern in content_patterns:
-                  content_match = re.search(pattern, html, re.DOTALL | re.IGNORECASE)
-                  if content_match:
-                      raw_content = content_match.group(1)
-                      # Clean up the content
-                      raw_content = re.sub(r'<script.*?>.*?</script>', '', raw_content, flags=re.DOTALL)
-                      raw_content = re.sub(r'<style.*?>.*?</style>', '', raw_content, flags=re.DOTALL)
-                      metadata['content'] = raw_content.strip()
-                      break
-              
-              # If still no content, create a fallback
-              if not metadata['content']:
-                  # Try to extract paragraphs
-                  paragraphs = re.findall(r'<p[^>]*>.*?</p>', html, re.DOTALL)
-                  if paragraphs:
-                      metadata['content'] = '\n'.join(paragraphs[:10])  # Take first 10 paragraphs
-                  else:
-                      metadata['content'] = '<p>Content could not be extracted automatically.</p>'
-              
-              # Extract read time
-              read_time_match = re.search(r'(\d+)\s*min\s*read', html, re.IGNORECASE)
-              if read_time_match:
-                  metadata['read_time'] = read_time_match.group(1)
-              else:
-                  # Calculate approximate read time
-                  word_count = len(re.findall(r'\w+', metadata['content']))
-                  metadata['read_time'] = str(max(1, round(word_count / 200)))
-              
-              return metadata
+          def get_meta(html, name):
+              m = re.search(r'<meta name="' + name + r'" content="([^"]*)"', html)
+              if not m:
+                  m = re.search(r'<meta property="' + name + r'" content="([^"]*)"', html)
+              return m.group(1) if m else ''
+
+          def get_title(html):
+              m = re.search(r'<title>([^<]*)</title>', html)
+              if m:
+                  t = m.group(1)
+                  return re.sub(r'\s*\|\s*MULTIBET.*$', '', t).strip()
+              return 'Article'
+
+          def get_featured_image(html):
+              m = re.search(r'class="[^"]*wp-post-image[^"]*"[^>]*src="([^"]*)"', html)
+              if not m:
+                  m = re.search(r'src="([^"]*)"[^>]*class="[^"]*wp-post-image[^"]*"', html)
+              if not m:
+                  m = re.search(r'src="(https://i\.imgur\.com/[^"]+)"', html)
+              return m.group(1) if m else random.choice(IMGUR_IMAGES)
+
+          def get_category(html):
+              m = re.search(r'<a href="/category/([^/]+)/"[^>]*>([^<]+)</a>', html)
+              if m:
+                  return m.group(1), m.group(2)
+              return 'news', 'News'
+
+          def get_date(html):
+              m = re.search(r'<div class="newsx-post-date">([^<]+)</div>', html)
+              if not m:
+                  m = re.search(r'"datePublished":"([^"T]+)', html)
+              return m.group(1).strip() if m else ''
+
+          def get_article_content(html):
+              m = re.search(r'<div class="newsx-post-content">(.*?)</div>\s*<div class="newsx-static-sharing', html, re.DOTALL)
+              if not m:
+                  m = re.search(r'<div class="newsx-post-content">(.*?)<div class="newsx-author', html, re.DOTALL)
+              if not m:
+                  m = re.search(r'<div class="newsx-post-content">(.*?)</article>', html, re.DOTALL)
+              if m:
+                  content = m.group(1)
+                  content = re.sub(r'<div[^>]*class="[^"]*lwptoc[^"]*"[^>]*>.*?</div>\s*</div>', '', content, flags=re.DOTALL)
+                  return content.strip()
+              return '<p>Content not found.</p>'
+
+          def get_h2_headings(content):
+              headings = re.findall(r'<h2[^>]*>(?:<[^>]+>)*([^<]+)(?:</[^>]+>)*</h2>', content)
+              return [h.strip() for h in headings if h.strip()]
 
           def add_heading_ids(content):
-              """Add IDs to h2 headings for TOC"""
-              counter = 0
-              def replace_h2(match):
-                  nonlocal counter
-                  counter += 1
-                  heading_text = re.sub(r'<[^>]+>', '', match.group(0)).strip()
-                  # Create URL-friendly ID
-                  heading_id = re.sub(r'[^a-zA-Z0-9]+', '-', heading_text.lower()).strip('-')
-                  if not heading_id:
-                      heading_id = f'section-{counter}'
-                  return f'<h2 id="{heading_id}">{heading_text}</h2>'
-              
-              return re.sub(r'<h2[^>]*>(.*?)</h2>', replace_h2, content, flags=re.DOTALL)
+              counter = [0]
+              def replace_h2(m):
+                  counter[0] += 1
+                  inner = re.sub(r'<[^>]+>', '', m.group(0)).strip()
+                  return '<h2 id="section-' + str(counter[0]) + '">' + inner + '</h2>'
+              return re.sub(r'<h2[^>]*>.*?</h2>', replace_h2, content, flags=re.DOTALL)
 
-          def get_headings(content):
-              """Extract h2 headings for TOC"""
-              headings = re.findall(r'<h2[^>]*>(.*?)</h2>', content)
-              return [re.sub(r'<[^>]+>', '', h).strip() for h in headings if h.strip()]
+          def get_slug(filepath):
+              parts = filepath.replace('\\', '/').split('/')
+              for part in reversed(parts):
+                  if part not in ('index.html', ''):
+                      return part
+              return ''
+
+          def get_all_pages():
+              pages = []
+              for fp in sorted(glob.glob('**/index.html', recursive=True)):
+                  if fp == 'index.html':
+                      continue
+                  if '/category/' in fp.replace('\\', '/'):
+                      continue
+                  slug = get_slug(fp)
+                  if slug:
+                      pages.append(slug)
+              return pages
 
           def build_toc(headings):
-              """Build table of contents HTML"""
-              if not headings or len(headings) < 2:
+              if not headings:
                   return ''
-              
-              items = []
-              for i, heading in enumerate(headings, 1):
-                  heading_id = re.sub(r'[^a-zA-Z0-9]+', '-', heading.lower()).strip('-')
-                  items.append(f'''
-                  <a href="#{heading_id}" class="toc-link block text-gray-700 hover:text-brand-red transition-colors text-sm font-medium" data-num="{i}">{heading}</a>
-                  ''')
-              
-              return f'''
-              <!-- Table of Contents -->
-              <div class="bg-gray-50 rounded-xl p-6 my-8 border border-gray-200">
-                  <div class="flex items-center justify-between mb-4">
-                      <h3 class="font-display font-bold text-lg text-gray-900">Table of Contents</h3>
-                      <button onclick="toggleToc()" class="text-sm text-brand-red font-medium hover:underline">Hide</button>
+              items = ''
+              for i, h in enumerate(headings, 1):
+                  items += '<a href="#section-' + str(i) + '" class="toc-link block text-gray-700 hover:text-red-500 transition-colors text-sm font-medium py-1" data-num="' + str(i) + '">' + h + '</a>\n'
+              return (
+                  '<div class="bg-gray-50 rounded-xl p-6 my-8 border border-gray-200">'
+                  '<div class="flex items-center justify-between mb-4">'
+                  '<h3 class="font-display font-bold text-lg text-gray-900">Table of Contents</h3>'
+                  '<button onclick="this.closest(\'.bg-gray-50\').querySelector(\'.toc-body\').classList.toggle(\'hidden\');this.textContent=this.textContent===\'Hide\'?\'Show\':\'Hide\'" class="text-sm text-red-500 font-medium hover:underline">Hide</button>'
+                  '</div>'
+                  '<nav class="toc-body space-y-1">' + items + '</nav>'
+                  '</div>'
+              )
+
+          def build_prev_next(slug, all_pages):
+              if slug not in all_pages:
+                  return ''
+              idx = all_pages.index(slug)
+              prev_html = ''
+              next_html = ''
+              if idx > 0:
+                  prev_slug = all_pages[idx - 1]
+                  prev_img = random.choice(IMGUR_IMAGES)
+                  prev_title = prev_slug.replace('-', ' ').title()
+                  prev_html = (
+                      '<a href="/' + prev_slug + '/" class="group flex gap-4 p-4 rounded-xl border border-gray-200 hover:border-red-500 hover:shadow-lg transition-all">'
+                      '<img src="' + prev_img + '" alt="Previous" class="w-20 h-20 object-cover rounded-lg shrink-0">'
+                      '<div><span class="text-xs text-red-500 font-semibold uppercase flex items-center gap-1 mb-1">'
+                      '<i data-lucide="arrow-left" class="w-3 h-3"></i> Previous</span>'
+                      '<h4 class="font-semibold text-gray-900 line-clamp-2 group-hover:text-red-500 transition-colors">' + prev_title + '</h4>'
+                      '</div></a>'
+                  )
+              if idx < len(all_pages) - 1:
+                  next_slug = all_pages[idx + 1]
+                  next_img = random.choice(IMGUR_IMAGES)
+                  next_title = next_slug.replace('-', ' ').title()
+                  next_html = (
+                      '<a href="/' + next_slug + '/" class="group flex gap-4 p-4 rounded-xl border border-gray-200 hover:border-red-500 hover:shadow-lg transition-all sm:flex-row-reverse text-right">'
+                      '<img src="' + next_img + '" alt="Next" class="w-20 h-20 object-cover rounded-lg shrink-0">'
+                      '<div><span class="text-xs text-red-500 font-semibold uppercase flex items-center gap-1 mb-1 justify-end">'
+                      'Next <i data-lucide="arrow-right" class="w-3 h-3"></i></span>'
+                      '<h4 class="font-semibold text-gray-900 line-clamp-2 group-hover:text-red-500 transition-colors">' + next_title + '</h4>'
+                      '</div></a>'
+                  )
+              if not prev_html and not next_html:
+                  return ''
+              return '<div class="grid sm:grid-cols-2 gap-4 mb-8">' + prev_html + next_html + '</div>'
+
+          def build_related(slug, all_pages):
+              others = [p for p in all_pages if p != slug]
+              picks = random.sample(others, min(3, len(others)))
+              items = ''
+              for p in picks:
+                  img = random.choice(IMGUR_IMAGES)
+                  title = p.replace('-', ' ').title()
+                  items += (
+                      '<a href="/' + p + '/" class="group flex gap-3">'
+                      '<img src="' + img + '" alt="" class="w-20 h-14 object-cover rounded-lg shrink-0">'
+                      '<div><h4 class="text-sm font-semibold text-gray-900 line-clamp-2 group-hover:text-red-500 transition-colors">' + title + '</h4></div>'
+                      '</a>'
+                  )
+              return items
+
+          def build_page(title, description, category_slug, category_name, date, image, content, slug, toc_html, prev_next_html, related_html):
+              return '''<!DOCTYPE html>
+          <html lang="en-US">
+          <head>
+              <meta charset="UTF-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <title>''' + title + ''' | MULTIBET</title>
+              <meta name="description" content="''' + description + '''">
+              <link rel="preconnect" href="https://fonts.googleapis.com">
+              <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+              <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+              <script src="https://cdn.tailwindcss.com"></script>
+              <script src="https://unpkg.com/lucide@latest"></script>
+              <script>
+                  tailwind.config = {
+                      theme: { extend: {
+                          fontFamily: { sans: ["Inter","sans-serif"], display: ["Space Grotesk","sans-serif"] },
+                          colors: { brand: { red: "#f84643" } },
+                          animation: {
+                              marquee: "marquee 25s linear infinite",
+                              "fade-in": "fadeIn 0.6s ease-out",
+                              "slide-up": "slideUp 0.8s ease-out"
+                          },
+                          keyframes: {
+                              marquee: { "0%": { transform: "translateX(0%)" }, "100%": { transform: "translateX(-100%)" } },
+                              fadeIn: { "0%": { opacity: "0" }, "100%": { opacity: "1" } },
+                              slideUp: { "0%": { transform: "translateY(20px)", opacity: "0" }, "100%": { transform: "translateY(0)", opacity: "1" } }
+                          }
+                      }}
+                  }
+              </script>
+              <style>
+                  .reading-progress { position:fixed; top:0; left:0; height:3px; background:linear-gradient(90deg,#f84643,#ff6b6b); z-index:9999; transition:width 0.1s; }
+                  .article-content p { margin-bottom:1.5rem; line-height:1.8; color:#374151; }
+                  .article-content h2 { font-family:"Space Grotesk",sans-serif; font-size:1.5rem; font-weight:700; margin-top:2.5rem; margin-bottom:1rem; color:#111827; }
+                  .article-content h3 { font-family:"Space Grotesk",sans-serif; font-size:1.25rem; font-weight:700; margin-top:1.5rem; margin-bottom:0.75rem; color:#111827; }
+                  .article-content ul, .article-content ol { margin-bottom:1.5rem; padding-left:1.5rem; }
+                  .article-content ul li { list-style:none; position:relative; padding-left:1.5rem; margin-bottom:0.5rem; line-height:1.7; color:#374151; }
+                  .article-content ul li::before { content:""; position:absolute; left:0; top:0.6rem; width:6px; height:6px; background:#f84643; border-radius:50%; }
+                  .article-content ol li { margin-bottom:0.5rem; line-height:1.7; color:#374151; }
+                  .article-content a { color:#f84643; font-weight:600; text-decoration:underline; text-underline-offset:3px; }
+                  .article-content blockquote { border-left:4px solid #f84643; padding-left:1.5rem; margin:2rem 0; font-style:italic; color:#6b7280; font-size:1.125rem; }
+                  .article-content img { max-width:100%; border-radius:0.75rem; margin:1rem 0; }
+                  .article-content strong { color:#111827; }
+                  .toc-link { position:relative; padding-left:2rem; }
+                  .toc-link::before { content:attr(data-num); position:absolute; left:0; top:0; width:1.5rem; height:1.5rem; background:#f84643; color:white; border-radius:50%; font-size:0.7rem; display:flex; align-items:center; justify-content:center; font-weight:600; }
+                  .line-clamp-2 { display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+              </style>
+          </head>
+          <body class="bg-gray-50 font-sans antialiased">
+              <div class="reading-progress" id="readingProgress"></div>
+              <div class="bg-red-500 text-white py-2 overflow-hidden">
+                  <div class="flex items-center max-w-7xl mx-auto px-4">
+                      <span class="font-bold text-sm uppercase tracking-wider shrink-0 mr-6 flex items-center gap-2">
+                          <i data-lucide="flame" class="w-4 h-4"></i> Hot News
+                      </span>
+                      <div class="overflow-hidden flex-1">
+                          <div class="flex gap-8 animate-marquee whitespace-nowrap">
+                              <a href="/sportpesa-mega-jackpot-prediction/" class="hover:underline text-sm">SportPesa Mega Jackpot Prediction</a>
+                              <span class="opacity-50">•</span>
+                              <a href="/betika-mabingwa-jackpot-prediction/" class="hover:underline text-sm">Betika Mabingwa Jackpot</a>
+                              <span class="opacity-50">•</span>
+                              <a href="/daily-multibet/" class="hover:underline text-sm">Daily Multibet Tips</a>
+                              <span class="opacity-50">•</span>
+                              <a href="/mega-jackpot-prediction/" class="hover:underline text-sm">Mega Jackpot Prediction</a>
+                              <span class="opacity-50">•</span>
+                              <a href="/sportpesa-mega-jackpot-prediction/" class="hover:underline text-sm">SportPesa Mega Jackpot Prediction</a>
+                          </div>
+                      </div>
                   </div>
-                  <nav id="toc" class="space-y-3">
-                      {''.join(items)}
+              </div>
+              <header class="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
+                  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                      <div class="flex items-center justify-between h-20">
+                          <a href="/" class="flex items-center gap-3 group">
+                              <div class="w-12 h-12 bg-red-500 rounded-xl flex items-center justify-center transform group-hover:rotate-12 transition-transform">
+                                  <span class="text-white font-bold text-xl font-display">M</span>
+                              </div>
+                              <div>
+                                  <div class="text-2xl font-bold font-display text-gray-900 tracking-tight">MULTIBET</div>
+                                  <p class="text-xs text-gray-500 uppercase tracking-widest">Your home of sportpesa mega jackpot</p>
+                              </div>
+                          </a>
+                          <nav class="hidden md:flex items-center gap-8">
+                              <a href="/" class="text-gray-700 hover:text-red-500 font-medium transition-colors">Home</a>
+                              <a href="/category/news/" class="text-gray-700 hover:text-red-500 font-medium transition-colors">News</a>
+                              <a href="/sportpesa-jackpot/" class="text-gray-700 hover:text-red-500 font-medium transition-colors">Jackpot</a>
+                              <a href="/daily-multibet/" class="text-gray-700 hover:text-red-500 font-medium transition-colors">Tips</a>
+                          </nav>
+                          <div class="flex items-center gap-3">
+                              <a href="#" class="hidden md:flex w-10 h-10 rounded-full bg-gray-100 items-center justify-center hover:bg-red-500 hover:text-white transition-all"><i data-lucide="facebook" class="w-5 h-5"></i></a>
+                              <a href="#" class="hidden md:flex w-10 h-10 rounded-full bg-gray-100 items-center justify-center hover:bg-red-500 hover:text-white transition-all"><i data-lucide="twitter" class="w-5 h-5"></i></a>
+                              <button onclick="document.getElementById(\'searchOverlay\').classList.toggle(\'hidden\')" class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all">
+                                  <i data-lucide="search" class="w-5 h-5"></i>
+                              </button>
+                          </div>
+                      </div>
+                  </div>
+                  <div id="searchOverlay" class="hidden absolute top-full left-0 right-0 bg-white border-b shadow-lg p-4">
+                      <div class="max-w-3xl mx-auto">
+                          <input type="search" placeholder="Search articles..." class="w-full pl-4 pr-4 py-3 rounded-xl border border-gray-200 focus:border-red-500 outline-none">
+                      </div>
+                  </div>
+              </header>
+              <div class="bg-gray-900 text-white py-3">
+                  <div class="max-w-7xl mx-auto px-4 flex items-center justify-between text-sm">
+                      <span class="text-gray-300 flex items-center gap-2"><i data-lucide="calendar" class="w-4 h-4"></i> Saturday, February 21, 2026</span>
+                      <a href="/disclaimer/" class="text-gray-400 hover:text-red-400 transition-colors flex items-center gap-2">
+                          <i data-lucide="shield" class="w-4 h-4"></i> 18+ | Bet Responsibly
+                      </a>
+                  </div>
+              </div>
+              <div class="max-w-7xl mx-auto px-4 py-4">
+                  <nav class="flex items-center gap-2 text-sm text-gray-500">
+                      <a href="/" class="hover:text-red-500 transition-colors">Home</a>
+                      <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                      <a href="/category/''' + category_slug + '''/" class="hover:text-red-500 transition-colors">''' + category_name + '''</a>
+                      <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                      <span class="text-gray-900 font-medium truncate max-w-xs sm:max-w-md">''' + title + '''</span>
                   </nav>
               </div>
-              '''
-
-          def get_all_slugs():
-              """Get all page slugs for navigation"""
-              slugs = []
-              for fp in sorted(glob.glob('**/index.html', recursive=True)):
-                  if fp == 'index.html' or '/category/' in fp.replace('\\', '/'):
-                      continue
-                  # Extract slug from path
-                  parts = fp.replace('\\', '/').split('/')
-                  slug = parts[-2] if len(parts) > 1 and parts[-1] == 'index.html' else parts[-1].replace('.html', '')
-                  if slug and slug not in ('index', ''):
-                      slugs.append(slug)
-              return slugs
-
-          def build_prev_next(current_slug, all_slugs):
-              """Build previous/next navigation"""
-              if not all_slugs or current_slug not in all_slugs:
-                  return '<div></div><div></div>'
-              
-              idx = all_slugs.index(current_slug)
-              prev_html = '<div></div>'
-              next_html = '<div></div>'
-              
-              if idx > 0:
-                  prev_slug = all_slugs[idx - 1]
-                  prev_title = prev_slug.replace('-', ' ').title()
-                  prev_img = random.choice(IMGUR_IMAGES)
-                  prev_html = f'''
-                  <a href="/{prev_slug}/" class="group flex gap-4 p-4 rounded-xl border border-gray-200 hover:border-brand-red hover:shadow-lg transition-all">
-                      <img src="{prev_img}" alt="Previous" class="w-20 h-20 object-cover rounded-lg shrink-0">
-                      <div>
-                          <span class="text-xs text-brand-red font-semibold uppercase flex items-center gap-1 mb-1">
-                              <i data-lucide="arrow-left" class="w-3 h-3"></i>
-                              Previous
-                          </span>
-                          <h4 class="font-semibold text-gray-900 line-clamp-2 group-hover:text-brand-red transition-colors">{prev_title}</h4>
-                      </div>
-                  </a>
-                  '''
-              
-              if idx < len(all_slugs) - 1:
-                  next_slug = all_slugs[idx + 1]
-                  next_title = next_slug.replace('-', ' ').title()
-                  next_img = random.choice(IMGUR_IMAGES)
-                  next_html = f'''
-                  <a href="/{next_slug}/" class="group flex gap-4 p-4 rounded-xl border border-gray-200 hover:border-brand-red hover:shadow-lg transition-all text-right sm:text-left sm:flex-row-reverse">
-                      <img src="{next_img}" alt="Next" class="w-20 h-20 object-cover rounded-lg shrink-0">
-                      <div>
-                          <span class="text-xs text-brand-red font-semibold uppercase flex items-center gap-1 mb-1 sm:justify-end">
-                              Next
-                              <i data-lucide="arrow-right" class="w-3 h-3"></i>
-                          </span>
-                          <h4 class="font-semibold text-gray-900 line-clamp-2 group-hover:text-brand-red transition-colors">{next_title}</h4>
-                      </div>
-                  </a>
-                  '''
-              
-              return f'{prev_html}{next_html}'
-
-          def build_related(current_slug, all_slugs):
-              """Build related posts HTML"""
-              others = [s for s in all_slugs if s != current_slug]
-              if not others:
-                  return '<p class="text-gray-500 text-sm">No related posts</p>'
-              
-              picks = random.sample(others, min(3, len(others)))
-              items = []
-              for slug in picks:
-                  title = slug.replace('-', ' ').title()
-                  img = random.choice(IMGUR_IMAGES)
-                  items.append(f'''
-                  <a href="/{slug}/" class="group flex gap-3">
-                      <img src="{img}" alt="" class="w-20 h-14 object-cover rounded-lg shrink-0">
-                      <div>
-                          <h4 class="text-sm font-semibold text-gray-900 line-clamp-2 group-hover:text-brand-red transition-colors">{title}</h4>
-                          <span class="text-xs text-gray-500">Latest</span>
-                      </div>
-                  </a>
-                  ''')
-              
-              return ''.join(items)
-
-          def create_new_page(metadata, slug, all_slugs):
-              """Create new HTML page using the first template structure"""
-              
-              toc_html = build_toc(get_headings(metadata['content']))
-              metadata['content'] = add_heading_ids(metadata['content'])
-              prev_next_html = build_prev_next(slug, all_slugs)
-              related_html = build_related(slug, all_slugs)
-              
-              return f'''<!DOCTYPE html>
-  <html lang="en-US" prefix="og: https://ogp.me/ns#">
-  <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>{metadata['title']} | MULTIBET</title>
-      <meta name="description" content="{metadata['description']}">
-      
-      <!-- Fonts -->
-      <link rel="preconnect" href="https://fonts.googleapis.com">
-      <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
-      
-      <!-- Tailwind CSS -->
-      <script src="https://cdn.tailwindcss.com"></script>
-      
-      <!-- Lucide Icons -->
-      <script src="https://unpkg.com/lucide@latest"></script>
-      
-      <script>
-          tailwind.config = {{
-              theme: {{
-                  extend: {{
-                      fontFamily: {{
-                          sans: ['Inter', 'sans-serif'],
-                          display: ['Space Grotesk', 'sans-serif'],
-                      }},
-                      colors: {{
-                          brand: {{
-                              red: '#f84643',
-                              dark: '#0a0a0a',
-                              gray: '#1a1a1a',
-                              light: '#f5f5f5'
-                          }}
-                      }},
-                      animation: {{
-                          'marquee': 'marquee 25s linear infinite',
-                          'fade-in': 'fadeIn 0.6s ease-out',
-                          'slide-up': 'slideUp 0.8s ease-out',
-                      }},
-                      keyframes: {{
-                          marquee: {{
-                              '0%': {{ transform: 'translateX(0%)' }},
-                              '100%': {{ transform: 'translateX(-100%)' }},
-                          }},
-                          fadeIn: {{
-                              '0%': {{ opacity: '0' }},
-                              '100%': {{ opacity: '1' }},
-                          }},
-                          slideUp: {{
-                              '0%': {{ transform: 'translateY(20px)', opacity: '0' }},
-                              '100%': {{ transform: 'translateY(0)', opacity: '1' }},
-                          }}
-                      }}
-                  }}
-              }}
-          }}
-      </script>
-      
-      <style>
-          .gradient-text {{
-              background: linear-gradient(135deg, #f84643 0%, #ff6b6b 100%);
-              -webkit-background-clip: text;
-              -webkit-text-fill-color: transparent;
-              background-clip: text;
-          }}
-          
-          .glass-effect {{
-              background: rgba(255, 255, 255, 0.05);
-              backdrop-filter: blur(10px);
-              border: 1px solid rgba(255, 255, 255, 0.1);
-          }}
-          
-          .hover-lift {{
-              transition: transform 0.3s ease, box-shadow 0.3s ease;
-          }}
-          
-          .hover-lift:hover {{
-              transform: translateY(-4px);
-              box-shadow: 0 20px 40px rgba(248, 70, 67, 0.15);
-          }}
-          
-          .article-content p {{
-              margin-bottom: 1.5rem;
-              line-height: 1.8;
-              color: #374151;
-          }}
-          
-          .article-content h2 {{
-              font-family: 'Space Grotesk', sans-serif;
-              font-size: 1.875rem;
-              font-weight: 700;
-              margin-top: 2.5rem;
-              margin-bottom: 1rem;
-              color: #111827;
-              scroll-margin-top: 100px;
-          }}
-          
-          .article-content h3 {{
-              font-family: 'Space Grotesk', sans-serif;
-              font-size: 1.5rem;
-              font-weight: 700;
-              margin-top: 2rem;
-              margin-bottom: 1rem;
-              color: #111827;
-          }}
-          
-          .article-content ul {{
-              margin-bottom: 1.5rem;
-              padding-left: 1.5rem;
-          }}
-          
-          .article-content li {{
-              margin-bottom: 0.5rem;
-              position: relative;
-              padding-left: 1.5rem;
-          }}
-          
-          .article-content li::before {{
-              content: '';
-              position: absolute;
-              left: 0;
-              top: 0.6rem;
-              width: 6px;
-              height: 6px;
-              background: #f84643;
-              border-radius: 50%;
-          }}
-          
-          .article-content ol {{
-              list-style: decimal;
-              padding-left: 2rem;
-              margin-bottom: 1.5rem;
-          }}
-          
-          .article-content blockquote {{
-              border-left: 4px solid #f84643;
-              padding-left: 1.5rem;
-              margin: 2rem 0;
-              font-style: italic;
-              color: #4b5563;
-              font-size: 1.1rem;
-          }}
-          
-          .article-content a {{
-              color: #f84643;
-              font-weight: 600;
-              text-decoration: underline;
-              text-underline-offset: 3px;
-          }}
-          
-          .toc-link {{
-              position: relative;
-              padding-left: 2rem;
-          }}
-          
-          .toc-link::before {{
-              content: attr(data-num);
-              position: absolute;
-              left: 0;
-              top: 0;
-              width: 1.5rem;
-              height: 1.5rem;
-              background: #f84643;
-              color: white;
-              border-radius: 50%;
-              font-size: 0.75rem;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              font-weight: 600;
-          }}
-          
-          .reading-progress {{
-              position: fixed;
-              top: 0;
-              left: 0;
-              height: 3px;
-              background: linear-gradient(90deg, #f84643, #ff6b6b);
-              z-index: 9999;
-              transition: width 0.1s;
-          }}
-      </style>
-  </head>
-  <body class="bg-gray-50 font-sans antialiased">
-      <!-- Reading Progress Bar -->
-      <div class="reading-progress" id="readingProgress"></div>
-      
-      <!-- Breaking News Ticker -->
-      <div class="bg-brand-red text-white py-2 overflow-hidden relative">
-          <div class="flex items-center max-w-7xl mx-auto px-4">
-              <span class="flex items-center gap-2 font-bold text-sm uppercase tracking-wider shrink-0 mr-6">
-                  <i data-lucide="flame" class="w-4 h-4"></i>
-                  Hot News
-              </span>
-              <div class="overflow-hidden flex-1 relative">
-                  <div class="flex gap-8 animate-marquee whitespace-nowrap">
-                      <a href="/mashemeji-lit-the-fuse-now-the-sportpesa-league-is-the-weekend-kenya-cant-ignore/" class="hover:underline text-sm">Mashemeji lit the fuse- Now the SportPesa League is the weekend Kenya can't ignore</a>
-                      <span class="text-white/50">•</span>
-                      <a href="/when-bundles-run-out-the-game-doesnt-stop-sportpesa-kenyas-ussd-casino-is-changing-how-kenyans-play/" class="hover:underline text-sm font-semibold">When bundles run out, the game doesn't stop</a>
-                      <span class="text-white/50">•</span>
-                      <a href="/every-goal-can-pay-how-sportpesa-kenyas-goal-goal-and-1x2-markets-are-putting-instant-wins-in-fans-hands/" class="hover:underline text-sm">Every goal can pay</a>
+              <main class="max-w-7xl mx-auto px-4 pb-16">
+                  <div class="grid lg:grid-cols-12 gap-8">
+                      <article class="lg:col-span-8 animate-slide-up">
+                          <div class="mb-4">
+                              <a href="/category/''' + category_slug + '''/" class="inline-flex items-center gap-2 px-4 py-1.5 bg-red-50 text-red-500 rounded-full text-sm font-semibold hover:bg-red-500 hover:text-white transition-all">''' + category_name + '''</a>
+                          </div>
+                          <h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold font-display text-gray-900 leading-tight mb-6">''' + title + '''</h1>
+                          <div class="flex flex-wrap items-center gap-4 text-sm text-gray-500 mb-8 pb-8 border-b border-gray-200">
+                              <div class="flex items-center gap-2">
+                                  <div class="w-8 h-8 rounded-full bg-red-500 flex items-center justify-center">
+                                      <i data-lucide="user" class="w-4 h-4 text-white"></i>
+                                  </div>
+                                  <span class="font-medium text-gray-900">multibet</span>
+                              </div>
+                              <span>•</span>
+                              <div class="flex items-center gap-2"><i data-lucide="calendar" class="w-4 h-4"></i><span>''' + date + '''</span></div>
+                              <span>•</span>
+                              <div class="flex items-center gap-2"><i data-lucide="clock" class="w-4 h-4"></i><span>5 min read</span></div>
+                          </div>
+                          <div class="relative mb-8 rounded-2xl overflow-hidden group">
+                              <img src="''' + image + '''" alt="''' + title.replace('"',"'") + '''" class="w-full h-auto object-cover transform group-hover:scale-105 transition-transform duration-700">
+                              <div class="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                          </div>
+                          ''' + toc_html + '''
+                          <div class="article-content text-lg">''' + content + '''</div>
+                          <div class="flex items-center justify-between py-6 border-t border-b border-gray-200 my-8">
+                              <span class="font-semibold text-gray-900 flex items-center gap-2"><i data-lucide="share-2" class="w-5 h-5"></i> Share this Article</span>
+                              <div class="flex gap-3">
+                                  <a href="https://www.facebook.com/sharer/sharer.php?u=/''' + slug + '''/" target="_blank" class="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center hover:scale-110 transition-transform"><i data-lucide="facebook" class="w-5 h-5"></i></a>
+                                  <a href="https://twitter.com/intent/tweet?url=/''' + slug + '''/" target="_blank" class="w-10 h-10 rounded-full bg-gray-900 text-white flex items-center justify-center hover:scale-110 transition-transform"><i data-lucide="twitter" class="w-5 h-5"></i></a>
+                                  <button onclick="navigator.clipboard.writeText(window.location.href)" class="w-10 h-10 rounded-full bg-gray-200 text-gray-700 flex items-center justify-center hover:scale-110 transition-transform"><i data-lucide="link" class="w-5 h-5"></i></button>
+                                  <button onclick="window.print()" class="w-10 h-10 rounded-full bg-gray-200 text-gray-700 flex items-center justify-center hover:scale-110 transition-transform"><i data-lucide="printer" class="w-5 h-5"></i></button>
+                              </div>
+                          </div>
+                          ''' + prev_next_html + '''
+                          <div class="bg-gray-50 rounded-xl p-6 flex gap-4 items-start">
+                              <div class="w-16 h-16 rounded-full bg-red-500 flex items-center justify-center shrink-0">
+                                  <span class="text-white font-bold text-xl font-display">M</span>
+                              </div>
+                              <div>
+                                  <span class="font-bold text-gray-900 block mb-1">multibet</span>
+                                  <p class="text-sm text-gray-500">Sports betting analyst and gaming industry expert covering the Kenyan market since 2018.</p>
+                              </div>
+                          </div>
+                      </article>
+                      <aside class="lg:col-span-4 space-y-6">
+                          <div class="bg-white rounded-xl border border-gray-200 p-6">
+                              <h3 class="font-display font-bold text-lg text-gray-900 mb-4 flex items-center gap-2">
+                                  <i data-lucide="newspaper" class="w-5 h-5 text-red-500"></i> Related Posts
+                              </h3>
+                              <div class="space-y-4">''' + related_html + '''</div>
+                          </div>
+                          <div class="bg-gradient-to-br from-gray-900 to-gray-800 text-white rounded-xl p-6">
+                              <h3 class="font-display font-bold text-lg mb-2">Stay Updated</h3>
+                              <p class="text-gray-300 text-sm mb-4">Get the latest betting tips and jackpot predictions.</p>
+                              <div class="space-y-3">
+                                  <input type="email" placeholder="Your email address" class="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white placeholder-gray-400 focus:outline-none">
+                                  <button class="w-full py-2 bg-red-500 hover:bg-red-600 rounded-lg font-semibold transition-colors">Subscribe</button>
+                              </div>
+                          </div>
+                          <div class="bg-white rounded-xl border border-gray-200 p-6">
+                              <h3 class="font-display font-bold text-lg text-gray-900 mb-4">Quick Links</h3>
+                              <nav class="space-y-2">
+                                  <a href="/" class="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 group"><span class="text-gray-700 group-hover:text-red-500">Home</span><i data-lucide="chevron-right" class="w-4 h-4 text-gray-400"></i></a>
+                                  <a href="/sportpesa-jackpot/" class="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 group"><span class="text-gray-700 group-hover:text-red-500">Jackpot Tips</span><i data-lucide="chevron-right" class="w-4 h-4 text-gray-400"></i></a>
+                                  <a href="/daily-multibet/" class="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 group"><span class="text-gray-700 group-hover:text-red-500">Daily Tips</span><i data-lucide="chevron-right" class="w-4 h-4 text-gray-400"></i></a>
+                                  <a href="/category/news/" class="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 group"><span class="text-gray-700 group-hover:text-red-500">News</span><i data-lucide="chevron-right" class="w-4 h-4 text-gray-400"></i></a>
+                                  <a href="/disclaimer/" class="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 group"><span class="text-gray-700 group-hover:text-red-500">Disclaimer</span><i data-lucide="chevron-right" class="w-4 h-4 text-gray-400"></i></a>
+                              </nav>
+                          </div>
+                          <div class="bg-gradient-to-br from-red-500 to-red-600 text-white rounded-xl p-6 text-center">
+                              <h3 class="font-display font-bold text-lg mb-2">Ready to Win?</h3>
+                              <p class="text-white/80 text-sm mb-4">Join thousands of Kenyans winning daily on SportPesa.</p>
+                              <a href="https://www.ke.sportpesa.com/" target="_blank" class="block w-full py-2 bg-white text-red-500 hover:bg-gray-100 rounded-lg font-bold transition-colors">Bet Now</a>
+                          </div>
+                      </aside>
                   </div>
-              </div>
-          </div>
-      </div>
-
-      <!-- Header -->
-      <header class="bg-white border-b border-gray-200 sticky top-0 z-50">
-          <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div class="flex items-center justify-between h-20">
-                  <!-- Logo -->
-                  <div class="flex items-center gap-3">
-                      <a href="/" class="flex items-center gap-3 group">
-                          <div class="w-12 h-12 bg-brand-red rounded-xl flex items-center justify-center transform group-hover:rotate-12 transition-transform">
-                              <span class="text-white font-bold text-xl font-display">M</span>
+              </main>
+              <footer class="bg-gray-900 text-white pt-12 pb-6">
+                  <div class="max-w-7xl mx-auto px-4">
+                      <div class="grid md:grid-cols-4 gap-8 mb-8">
+                          <div>
+                              <div class="flex items-center gap-3 mb-4">
+                                  <div class="w-10 h-10 bg-red-500 rounded-lg flex items-center justify-center"><span class="text-white font-bold font-display">M</span></div>
+                                  <span class="text-xl font-bold font-display">MULTIBET</span>
+                              </div>
+                              <p class="text-gray-400 text-sm">Your trusted source for SportPesa Mega Jackpot predictions and betting insights in Kenya.</p>
                           </div>
                           <div>
-                              <h1 class="text-2xl font-bold font-display text-gray-900 tracking-tight">MULTIBET</h1>
-                              <p class="text-xs text-gray-500 uppercase tracking-widest">Your home of sportpesa mega jackpot</p>
+                              <h4 class="font-semibold mb-4">Categories</h4>
+                              <ul class="space-y-2 text-sm text-gray-400">
+                                  <li><a href="/sportpesa-jackpot/" class="hover:text-red-400 transition-colors">Jackpot Tips</a></li>
+                                  <li><a href="/daily-multibet/" class="hover:text-red-400 transition-colors">Daily Multibets</a></li>
+                                  <li><a href="/category/news/" class="hover:text-red-400 transition-colors">News</a></li>
+                                  <li><a href="/mega-jackpot-prediction/" class="hover:text-red-400 transition-colors">Mega Jackpot</a></li>
+                              </ul>
                           </div>
-                      </a>
-                  </div>
-
-                  <!-- Navigation -->
-                  <nav class="hidden md:flex items-center gap-8">
-                      <a href="/" class="text-gray-700 hover:text-brand-red font-medium transition-colors">Home</a>
-                      <a href="/category/reviews/" class="text-gray-700 hover:text-brand-red font-medium transition-colors">Reviews</a>
-                      <a href="/category/predictions/" class="text-gray-700 hover:text-brand-red font-medium transition-colors">Predictions</a>
-                      <a href="/category/news/" class="text-gray-700 hover:text-brand-red font-medium transition-colors">News</a>
-                  </nav>
-
-                  <!-- Actions -->
-                  <div class="flex items-center gap-4">
-                      <div class="hidden md:flex items-center gap-3">
-                          <a href="#" class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center hover:bg-brand-red hover:text-white transition-all">
-                              <i data-lucide="facebook" class="w-5 h-5"></i>
-                          </a>
-                          <a href="#" class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center hover:bg-brand-red hover:text-white transition-all">
-                              <i data-lucide="twitter" class="w-5 h-5"></i>
-                          </a>
-                          <a href="#" class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center hover:bg-brand-red hover:text-white transition-all">
-                              <i data-lucide="instagram" class="w-5 h-5"></i>
-                          </a>
-                      </div>
-                      
-                      <button onclick="toggleSearch()" class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center hover:bg-brand-red hover:text-white transition-all">
-                          <i data-lucide="search" class="w-5 h-5"></i>
-                      </button>
-                      
-                      <button class="md:hidden w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
-                          <i data-lucide="menu" class="w-5 h-5"></i>
-                      </button>
-                  </div>
-              </div>
-          </div>
-          
-          <!-- Search Overlay -->
-          <div id="searchOverlay" class="hidden absolute top-full left-0 right-0 bg-white border-b border-gray-200 shadow-lg p-4 animate-fade-in">
-              <div class="max-w-3xl mx-auto">
-                  <div class="relative">
-                      <input type="search" placeholder="Search articles..." class="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 focus:border-brand-red focus:ring-2 focus:ring-brand-red/20 outline-none transition-all">
-                      <i data-lucide="search" class="w-5 h-5 text-gray-400 absolute left-4 top-1/2 -translate-y-1/2"></i>
-                  </div>
-              </div>
-          </div>
-      </header>
-
-      <!-- Secondary Header -->
-      <div class="bg-gray-900 text-white py-3">
-          <div class="max-w-7xl mx-auto px-4 flex items-center justify-between">
-              <div class="flex items-center gap-4 text-sm">
-                  <button class="flex items-center gap-2 hover:text-brand-red transition-colors">
-                      <i data-lucide="menu" class="w-4 h-4"></i>
-                      <span class="hidden sm:inline">Menu</span>
-                  </button>
-                  <span class="text-gray-500">|</span>
-                  <span class="text-gray-300 flex items-center gap-2">
-                      <i data-lucide="calendar" class="w-4 h-4"></i>
-                      {datetime.now().strftime('%A, %B %d, %Y')}
-                  </span>
-              </div>
-              <div class="flex items-center gap-4">
-                  <button onclick="toggleDarkMode()" class="flex items-center gap-2 text-sm hover:text-brand-red transition-colors">
-                      <i data-lucide="moon" class="w-4 h-4"></i>
-                      <span class="hidden sm:inline">Dark Mode</span>
-                  </button>
-                  <a href="/random/" class="flex items-center gap-2 text-sm hover:text-brand-red transition-colors">
-                      <i data-lucide="shuffle" class="w-4 h-4"></i>
-                      <span class="hidden sm:inline">Random</span>
-                  </a>
-              </div>
-          </div>
-      </div>
-
-      <!-- Breadcrumb -->
-      <div class="max-w-7xl mx-auto px-4 py-4">
-          <nav class="flex items-center gap-2 text-sm text-gray-500">
-              <a href="/" class="hover:text-brand-red transition-colors">Home</a>
-              <i data-lucide="chevron-right" class="w-4 h-4"></i>
-              <a href="/category/{metadata['category_slug']}/" class="hover:text-brand-red transition-colors">{metadata['category_name']}</a>
-              <i data-lucide="chevron-right" class="w-4 h-4"></i>
-              <span class="text-gray-900 font-medium truncate max-w-xs sm:max-w-md">{metadata['title']}</span>
-          </nav>
-      </div>
-
-      <!-- Main Content -->
-      <main class="max-w-7xl mx-auto px-4 pb-16">
-          <div class="grid lg:grid-cols-12 gap-8">
-              <!-- Article Content -->
-              <article class="lg:col-span-8 animate-slide-up">
-                  <!-- Category Badge -->
-                  <div class="mb-4">
-                      <a href="/category/{metadata['category_slug']}/" class="inline-flex items-center gap-2 px-4 py-1.5 bg-brand-red/10 text-brand-red rounded-full text-sm font-semibold hover:bg-brand-red hover:text-white transition-all">
-                          {metadata['category_name']}
-                      </a>
-                  </div>
-
-                  <!-- Title -->
-                  <h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold font-display text-gray-900 leading-tight mb-6">
-                      {metadata['title']}
-                  </h1>
-
-                  <!-- Meta -->
-                  <div class="flex flex-wrap items-center gap-4 text-sm text-gray-500 mb-8 pb-8 border-b border-gray-200">
-                      <div class="flex items-center gap-2">
-                          <div class="w-8 h-8 rounded-full bg-brand-red flex items-center justify-center">
-                              <i data-lucide="user" class="w-4 h-4 text-white"></i>
+                          <div>
+                              <h4 class="font-semibold mb-4">Legal</h4>
+                              <ul class="space-y-2 text-sm text-gray-400">
+                                  <li><a href="/privacy-policy/" class="hover:text-red-400 transition-colors">Privacy Policy</a></li>
+                                  <li><a href="/disclaimer/" class="hover:text-red-400 transition-colors">Disclaimer</a></li>
+                                  <li><a href="/responsible-gambling-in-kenya-tips-for-safe-gambling/" class="hover:text-red-400 transition-colors">Responsible Gaming</a></li>
+                                  <li><a href="/advertise/" class="hover:text-red-400 transition-colors">Advertise</a></li>
+                                  <li><a href="/guest-post-with-us/" class="hover:text-red-400 transition-colors">Guest Post</a></li>
+                              </ul>
                           </div>
-                          <span class="font-medium text-gray-900">multibet</span>
+                          <div>
+                              <h4 class="font-semibold mb-4">Connect</h4>
+                              <div class="flex gap-3">
+                                  <a href="#" class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-red-500 transition-colors"><i data-lucide="facebook" class="w-5 h-5"></i></a>
+                                  <a href="#" class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-red-500 transition-colors"><i data-lucide="twitter" class="w-5 h-5"></i></a>
+                                  <a href="#" class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-red-500 transition-colors"><i data-lucide="instagram" class="w-5 h-5"></i></a>
+                              </div>
+                          </div>
                       </div>
-                      <span class="hidden sm:inline">•</span>
-                      <div class="flex items-center gap-2">
-                          <i data-lucide="calendar" class="w-4 h-4"></i>
-                          <span>{metadata['date']}</span>
-                      </div>
-                      <span class="hidden sm:inline">•</span>
-                      <div class="flex items-center gap-2">
-                          <i data-lucide="clock" class="w-4 h-4"></i>
-                          <span>{metadata['read_time']} min read</span>
-                      </div>
-                  </div>
-
-                  <!-- Featured Image -->
-                  <div class="relative mb-8 rounded-2xl overflow-hidden group">
-                      <img src="{metadata['featured_image']}" alt="{metadata['title']}" class="w-full h-auto object-cover transform group-hover:scale-105 transition-transform duration-700">
-                      <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                  </div>
-
-                  {toc_html}
-
-                  <!-- Article Body -->
-                  <div class="article-content text-lg">
-                      {metadata['content']}
-                  </div>
-
-                  <!-- Share -->
-                  <div class="flex items-center justify-between py-6 border-t border-b border-gray-200 my-8">
-                      <span class="font-semibold text-gray-900 flex items-center gap-2">
-                          <i data-lucide="share-2" class="w-5 h-5"></i>
-                          Share this Article
-                      </span>
-                      <div class="flex gap-3">
-                          <a href="https://www.facebook.com/sharer/sharer.php?u=/{slug}/" target="_blank" class="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center hover:scale-110 transition-transform">
-                              <i data-lucide="facebook" class="w-5 h-5"></i>
-                          </a>
-                          <a href="https://twitter.com/intent/tweet?text={metadata['title']}&url=/{slug}/" target="_blank" class="w-10 h-10 rounded-full bg-gray-900 text-white flex items-center justify-center hover:scale-110 transition-transform">
-                              <i data-lucide="twitter" class="w-5 h-5"></i>
-                          </a>
-                          <button onclick="copyLink()" class="w-10 h-10 rounded-full bg-gray-200 text-gray-700 flex items-center justify-center hover:scale-110 transition-transform relative" id="copyBtn">
-                              <i data-lucide="link" class="w-5 h-5"></i>
-                              <span id="copyTooltip" class="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 transition-opacity">Copied!</span>
-                          </button>
-                          <button onclick="window.print()" class="w-10 h-10 rounded-full bg-gray-200 text-gray-700 flex items-center justify-center hover:scale-110 transition-transform">
-                              <i data-lucide="printer" class="w-5 h-5"></i>
+                      <div class="border-t border-gray-800 pt-6 flex flex-col md:flex-row items-center justify-between gap-4">
+                          <p class="text-sm text-gray-500">Copyright 2026 MULTIBET | Gambling is for 18+ only. Bet responsibly.</p>
+                          <button onclick="window.scrollTo({top:0,behavior:\'smooth\'})" class="flex items-center gap-2 text-sm text-gray-400 hover:text-red-400 transition-colors">
+                              Back to Top <i data-lucide="arrow-up" class="w-4 h-4"></i>
                           </button>
                       </div>
                   </div>
+              </footer>
+              <script>
+                  lucide.createIcons();
+                  window.addEventListener("scroll", function() {
+                      var w = document.body.scrollTop || document.documentElement.scrollTop;
+                      var h = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+                      document.getElementById("readingProgress").style.width = ((w/h)*100) + "%";
+                  });
+              </script>
+          </body>
+          </html>'''
 
-                  <!-- Navigation -->
-                  <div class="grid sm:grid-cols-2 gap-4 mb-8">
-                      {prev_next_html}
-                  </div>
+          print("Scanning all pages...")
+          all_pages = get_all_pages()
+          print("Found " + str(len(all_pages)) + " pages")
 
-                  <!-- Author -->
-                  <div class="bg-gray-50 rounded-xl p-6 flex gap-4 items-start">
-                      <div class="w-16 h-16 rounded-full bg-brand-red flex items-center justify-center shrink-0">
-                          <span class="text-white font-bold text-xl font-display">M</span>
-                      </div>
-                      <div>
-                          <a href="/author/multibet/" class="font-bold text-gray-900 hover:text-brand-red transition-colors">multibet</a>
-                          <p class="text-sm text-gray-500 mt-1">Sports betting analyst and gaming industry expert covering the Kenyan market since 2018.</p>
-                      </div>
-                  </div>
-              </article>
-
-              <!-- Sidebar -->
-              <aside class="lg:col-span-4 space-y-6">
-                  <!-- Related Posts -->
-                  <div class="bg-white rounded-xl border border-gray-200 p-6">
-                      <h3 class="font-display font-bold text-lg text-gray-900 mb-4 flex items-center gap-2">
-                          <i data-lucide="newspaper" class="w-5 h-5 text-brand-red"></i>
-                          Related Posts
-                      </h3>
-                      <div class="space-y-4">
-                          {related_html}
-                      </div>
-                  </div>
-
-                  <!-- Newsletter -->
-                  <div class="bg-gradient-to-br from-gray-900 to-gray-800 text-white rounded-xl p-6">
-                      <h3 class="font-display font-bold text-lg mb-2">Stay Updated</h3>
-                      <p class="text-gray-300 text-sm mb-4">Get the latest betting tips and news delivered to your inbox.</p>
-                      <form class="space-y-3" onsubmit="event.preventDefault(); alert('Newsletter demo');">
-                          <input type="email" placeholder="Your email address" class="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white placeholder-gray-400 focus:outline-none focus:border-brand-red">
-                          <button type="submit" class="w-full py-2 bg-brand-red hover:bg-red-600 rounded-lg font-semibold transition-colors">
-                              Subscribe
-                          </button>
-                      </form>
-                  </div>
-
-                  <!-- Quick Links -->
-                  <div class="bg-white rounded-xl border border-gray-200 p-6">
-                      <h3 class="font-display font-bold text-lg text-gray-900 mb-4">Quick Links</h3>
-                      <nav class="space-y-2">
-                          <a href="/" class="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-colors group">
-                              <span class="text-gray-700 group-hover:text-brand-red transition-colors">Home</span>
-                              <i data-lucide="chevron-right" class="w-4 h-4 text-gray-400"></i>
-                          </a>
-                          <a href="/category/reviews/" class="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-colors group">
-                              <span class="text-gray-700 group-hover:text-brand-red transition-colors">Reviews</span>
-                              <i data-lucide="chevron-right" class="w-4 h-4 text-gray-400"></i>
-                          </a>
-                          <a href="/category/predictions/" class="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-colors group">
-                              <span class="text-gray-700 group-hover:text-brand-red transition-colors">Predictions</span>
-                              <i data-lucide="chevron-right" class="w-4 h-4 text-gray-400"></i>
-                          </a>
-                          <a href="/category/news/" class="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-colors group">
-                              <span class="text-gray-700 group-hover:text-brand-red transition-colors">News</span>
-                              <i data-lucide="chevron-right" class="w-4 h-4 text-gray-400"></i>
-                          </a>
-                      </nav>
-                  </div>
-              </aside>
-          </div>
-      </main>
-
-      <!-- Footer -->
-      <footer class="bg-gray-900 text-white pt-12 pb-6">
-          <div class="max-w-7xl mx-auto px-4">
-              <div class="grid md:grid-cols-4 gap-8 mb-8">
-                  <div>
-                      <div class="flex items-center gap-3 mb-4">
-                          <div class="w-10 h-10 bg-brand-red rounded-lg flex items-center justify-center">
-                              <span class="text-white font-bold font-display">M</span>
-                          </div>
-                          <span class="text-xl font-bold font-display">MULTIBET</span>
-                      </div>
-                      <p class="text-gray-400 text-sm">Your trusted source for SportPesa Mega Jackpot predictions and betting insights in Kenya.</p>
-                  </div>
-                  <div>
-                      <h4 class="font-semibold mb-4">Categories</h4>
-                      <ul class="space-y-2 text-sm text-gray-400">
-                          <li><a href="/category/reviews/" class="hover:text-brand-red transition-colors">Reviews</a></li>
-                          <li><a href="/category/predictions/" class="hover:text-brand-red transition-colors">Predictions</a></li>
-                          <li><a href="/category/news/" class="hover:text-brand-red transition-colors">News</a></li>
-                          <li><a href="/category/tips/" class="hover:text-brand-red transition-colors">Betting Tips</a></li>
-                      </ul>
-                  </div>
-                  <div>
-                      <h4 class="font-semibold mb-4">Legal</h4>
-                      <ul class="space-y-2 text-sm text-gray-400">
-                          <li><a href="/terms/" class="hover:text-brand-red transition-colors">Terms of Service</a></li>
-                          <li><a href="/privacy/" class="hover:text-brand-red transition-colors">Privacy Policy</a></li>
-                          <li><a href="/responsible-gaming/" class="hover:text-brand-red transition-colors">Responsible Gaming</a></li>
-                          <li><a href="/18-plus/" class="hover:text-brand-red transition-colors">18+ Only</a></li>
-                      </ul>
-                  </div>
-                  <div>
-                      <h4 class="font-semibold mb-4">Connect</h4>
-                      <div class="flex gap-3">
-                          <a href="#" class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-brand-red transition-colors">
-                              <i data-lucide="facebook" class="w-5 h-5"></i>
-                          </a>
-                          <a href="#" class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-brand-red transition-colors">
-                              <i data-lucide="twitter" class="w-5 h-5"></i>
-                          </a>
-                          <a href="#" class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-brand-red transition-colors">
-                              <i data-lucide="instagram" class="w-5 h-5"></i>
-                          </a>
-                      </div>
-                  </div>
-              </div>
-              <div class="border-t border-gray-800 pt-6 flex flex-col md:flex-row items-center justify-between gap-4">
-                  <p class="text-sm text-gray-500">Copyright © 2026 MULTIBET | All Rights Reserved</p>
-                  <button onclick="scrollToTop()" class="flex items-center gap-2 text-sm text-gray-400 hover:text-brand-red transition-colors">
-                      Back to Top
-                      <i data-lucide="arrow-up" class="w-4 h-4"></i>
-                  </button>
-              </div>
-          </div>
-      </footer>
-
-      <script>
-          // Initialize Lucide icons
-          lucide.createIcons();
-          
-          // Reading Progress
-          window.addEventListener('scroll', () => {{
-              const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
-              const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-              const scrolled = (winScroll / height) * 100;
-              document.getElementById('readingProgress').style.width = scrolled + "%";
-          }});
-          
-          // Toggle Search
-          function toggleSearch() {{
-              const overlay = document.getElementById('searchOverlay');
-              overlay.classList.toggle('hidden');
-              if (!overlay.classList.contains('hidden')) {{
-                  overlay.querySelector('input').focus();
-              }}
-          }}
-          
-          // Toggle TOC
-          function toggleToc() {{
-              const toc = document.getElementById('toc');
-              const btn = event.target;
-              if (toc.style.display === 'none') {{
-                  toc.style.display = 'block';
-                  btn.textContent = 'Hide';
-              }} else {{
-                  toc.style.display = 'none';
-                  btn.textContent = 'Show';
-              }}
-          }}
-          
-          // Copy Link
-          function copyLink() {{
-              navigator.clipboard.writeText(window.location.href);
-              const tooltip = document.getElementById('copyTooltip');
-              tooltip.style.opacity = '1';
-              setTimeout(() => {{
-                  tooltip.style.opacity = '0';
-              }}, 2000);
-          }}
-          
-          // Scroll to Top
-          function scrollToTop() {{
-              window.scrollTo({{ top: 0, behavior: 'smooth' }});
-          }}
-          
-          // Dark Mode Toggle
-          function toggleDarkMode() {{
-              document.body.classList.toggle('dark');
-              const moonIcon = document.querySelector('[data-lucide="moon"]');
-              if (document.body.classList.contains('dark')) {{
-                  moonIcon.setAttribute('data-lucide', 'sun');
-              }} else {{
-                  moonIcon.setAttribute('data-lucide', 'moon');
-              }}
-              lucide.createIcons();
-          }}
-      </script>
-  </body>
-  </html>'''
-
-          # Main execution
-          print("=" * 50)
-          print("Starting page redesign...")
-          print("=" * 50)
-
-          # Get all slugs for navigation
-          all_slugs = get_all_slugs()
-          print(f"Found {len(all_slugs)} pages for navigation")
-
-          # Process all HTML files
           processed = 0
           skipped = 0
-          errors = 0
 
-          for filepath in glob.glob('**/*.html', recursive=True):
-              # Skip category pages and root index
-              if filepath == 'index.html' or '/category/' in filepath.replace('\\', '/'):
+          for filepath in glob.glob('**/index.html', recursive=True):
+              if filepath == 'index.html':
                   continue
-              
-              # Extract slug from path
-              if filepath.endswith('/index.html'):
-                  slug = filepath.replace('/index.html', '').split('/')[-1]
-              else:
-                  slug = filepath.replace('.html', '').split('/')[-1]
-              
-              if not slug or slug in ('index', ''):
+              if '/category/' in filepath.replace('\\', '/'):
                   continue
-              
-              print(f"\nProcessing: {filepath} (slug: {slug})")
-              
               try:
-                  # Read file
                   with open(filepath, 'r', encoding='utf-8', errors='ignore') as f:
                       html = f.read()
-                  
-                  # Extract metadata
-                  metadata = extract_metadata(html)
-                  
-                  # Create backup
-                  backup_path = filepath + '.backup'
-                  with open(backup_path, 'w', encoding='utf-8') as f:
-                      f.write(html)
-                  
-                  # Generate new HTML
-                  new_html = create_new_page(metadata, slug, all_slugs)
-                  
-                  # Write new file
+                  if 'newsx-post-content' not in html:
+                      skipped += 1
+                      continue
+                  title = get_title(html)
+                  description = get_meta(html, 'description')
+                  cat_slug, cat_name = get_category(html)
+                  date = get_date(html)
+                  image = get_featured_image(html)
+                  content = get_article_content(html)
+                  slug = get_slug(filepath)
+                  headings = get_h2_headings(content)
+                  content = add_heading_ids(content)
+                  toc_html = build_toc(headings)
+                  prev_next_html = build_prev_next(slug, all_pages)
+                  related_html = build_related(slug, all_pages)
+                  new_html = build_page(title, description, cat_slug, cat_name, date, image, content, slug, toc_html, prev_next_html, related_html)
                   with open(filepath, 'w', encoding='utf-8') as f:
                       f.write(new_html)
-                  
                   processed += 1
-                  print(f"  ✅ Updated: {metadata['title'][:50]}...")
-                  
+                  if processed % 50 == 0:
+                      print("Processed " + str(processed) + " pages...")
               except Exception as e:
-                  errors += 1
-                  print(f"  ❌ Error: {str(e)}")
+                  print("Error: " + filepath + ": " + str(e))
+                  skipped += 1
 
-          print("\n" + "=" * 50)
-          print(f"✅ Complete!")
-          print(f"   Processed: {processed}")
-          print(f"   Errors: {errors}")
-          print("=" * 50)
+          print("Done! Processed: " + str(processed) + ", Skipped: " + str(skipped))
           SCRIPTEOF
 
       - name: Run script
         run: python3 /tmp/redesign.py
 
-      - name: Commit changes
-        uses: stefanzweifel/git-auto-commit-action@v4
+      - uses: stefanzweifel/git-auto-commit-action@v4
         with:
-          commit_message: "Redesign: Match first template design across all pages"
-          file_pattern: '*.html'
+          commit_message: Redesign all pages with full featured template v2
