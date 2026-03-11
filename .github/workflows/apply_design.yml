@@ -1,6 +1,8 @@
 name: Apply Perfect Design
 on:
   workflow_dispatch
+  push:
+    branches: [ main ]
 
 jobs:
   redesign:
@@ -10,198 +12,152 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       
+      - name: Debug - List all files
+        run: |
+          echo "Current directory: $(pwd)"
+          echo "Files in root:"
+          ls -la
+          echo ""
+          echo "All HTML files:"
+          find . -name "*.html" -type f | head -20
+          echo ""
+          echo "First few lines of first HTML file:"
+          FIRST_HTML=$(find . -name "*.html" -type f | head -1)
+          if [ -n "$FIRST_HTML" ]; then
+            echo "Checking: $FIRST_HTML"
+            head -20 "$FIRST_HTML"
+          else
+            echo "NO HTML FILES FOUND!"
+          fi
+
       - name: Find template file
         id: find_template
         run: |
-          # Try to find the template file (the one with the perfect design)
-          TEMPLATE_FILE=$(find . -name "*.html" -type f -exec grep -l "When bundles run out, the game doesn't stop" {} \; | head -1)
-          if [ -z "$TEMPLATE_FILE" ]; then
-            # If not found, use any HTML file as template (the script will handle it)
-            TEMPLATE_FILE=$(find . -name "*.html" -not -path "*/category/*" -not -name "index.html" | head -1)
-          fi
+          # Try to find the template file
+          TEMPLATE_FILE=$(find . -name "*.html" -type f | head -1)
           echo "template_file=$TEMPLATE_FILE" >> $GITHUB_OUTPUT
-          echo "Found template: $TEMPLATE_FILE"
+          echo "Using template: $TEMPLATE_FILE"
 
-      - name: Create Python script
+      - name: Create simple Python script
         run: |
           cat > apply_design.py << 'EOF'
 #!/usr/bin/env python3
+import os
+import glob
+
+print("=" * 50)
+print("SIMPLE TEST SCRIPT")
+print("=" * 50)
+
+# List all HTML files
+html_files = glob.glob('**/*.html', recursive=True)
+print(f"Found {len(html_files)} HTML files:")
+
+for i, f in enumerate(html_files[:10]):  # Show first 10
+    print(f"  {i+1}. {f}")
+
+if len(html_files) > 10:
+    print(f"  ... and {len(html_files)-10} more")
+
+# Check if we can read them
+for f in html_files[:3]:  # Try first 3
+    try:
+        with open(f, 'r', encoding='utf-8', errors='ignore') as file:
+            content = file.read()
+            print(f"\n✅ Can read: {f} ({len(content)} bytes)")
+            # Show first 200 chars
+            print(f"Preview: {content[:200]}...")
+    except Exception as e:
+        print(f"❌ Cannot read {f}: {e}")
+
+print("\n" + "=" * 50)
+EOF
+
+      - name: Run test script
+        run: python3 apply_design.py
+        
+      - name: Create fixed redesign script
+        run: |
+          cat > redesign.py << 'EOF'
+#!/usr/bin/env python3
 """
-Apply the perfect design to all pages
+Simple redesign script that just copies the design from one page to others
 """
 
 import os
-import re
 import glob
-
-# Get template file from environment
-TEMPLATE_FILE = os.environ.get('TEMPLATE_FILE', '').strip()
-if not TEMPLATE_FILE or not os.path.exists(TEMPLATE_FILE):
-    # Fallback: find any HTML file as template
-    html_files = glob.glob('**/*.html', recursive=True)
-    for f in html_files:
-        if 'category' not in f and f != 'index.html':
-            TEMPLATE_FILE = f
-            break
-
-print(f"Using template: {TEMPLATE_FILE}")
-
-# Read the template
-with open(TEMPLATE_FILE, 'r', encoding='utf-8', errors='ignore') as f:
-    PERFECT_DESIGN = f.read()
-
-def extract_page_content(html):
-    """Extract ONLY the unique content from a page"""
-    
-    # Extract title
-    title_match = re.search(r'<title>(.*?)(?:\s*\|\s*MULTIBET)?</title>', html, re.DOTALL)
-    title = title_match.group(1).strip() if title_match else ''
-    
-    # Extract meta description
-    desc_match = re.search(r'<meta name="description" content="([^"]*)"', html)
-    description = desc_match.group(1) if desc_match else ''
-    
-    # Extract category
-    cat_match = re.search(r'<a href="/category/([^/]+)/"[^>]*>([^<]+)</a>', html)
-    if cat_match:
-        category_slug = cat_match.group(1)
-        category_name = cat_match.group(2)
-    else:
-        # Default
-        category_slug, category_name = 'reviews', 'Reviews'
-    
-    # Extract date
-    date_match = re.search(r'<span>([A-Za-z]+ \d{1,2}, \d{4})</span>', html)
-    date = date_match.group(1) if date_match else ''
-    
-    # Extract featured image
-    img_match = re.search(r'<img src="([^"]+)"[^>]*class="[^"]*object-cover[^"]*"', html)
-    image = img_match.group(1) if img_match else 'https://i.imgur.com/2H9nodm.jpg'
-    
-    # Extract the main article content
-    content_match = re.search(r'<div class="article-content[^>]*>(.*?)</div>\s*<div class="flex items-center justify-between', html, re.DOTALL)
-    
-    if not content_match:
-        # Try to find content in article tag
-        article_match = re.search(r'<article[^>]*>(.*?)</article>', html, re.DOTALL)
-        if article_match:
-            content = article_match.group(1)
-            # Remove header elements
-            content = re.sub(r'<div class="mb-4">.*?</div>', '', content, flags=re.DOTALL)
-            content = re.sub(r'<h1[^>]*>.*?</h1>', '', content, flags=re.DOTALL)
-            content = re.sub(r'<div class="flex flex-wrap items-center.*?</div>', '', content, flags=re.DOTALL)
-            content = re.sub(r'<div class="relative mb-8.*?</div>', '', content, flags=re.DOTALL)
-        else:
-            content = '<p>Content could not be extracted</p>'
-    else:
-        content = content_match.group(1).strip()
-    
-    return {
-        'title': title,
-        'description': description,
-        'category_slug': category_slug,
-        'category_name': category_name,
-        'date': date,
-        'image': image,
-        'content': content
-    }
-
-def create_page_from_design(page_data):
-    """Create a new page using the perfect design but with this page's content"""
-    
-    # Start with the perfect design
-    new_page = PERFECT_DESIGN
-    
-    # Replace basic metadata
-    new_page = re.sub(r'<title>.*?\|\s*MULTIBET</title>', 
-                     f'<title>{page_data["title"]} | MULTIBET</title>', 
-                     new_page)
-    
-    new_page = re.sub(r'<meta name="description" content="[^"]*"', 
-                     f'<meta name="description" content="{page_data["description"]}"', 
-                     new_page)
-    
-    # Replace category
-    new_page = re.sub(r'<a href="/category/[^"]*/"[^>]*>([^<]+)</a>', 
-                     f'<a href="/category/{page_data["category_slug"]}/" class="inline-flex items-center gap-2 px-4 py-1.5 bg-brand-red/10 text-brand-red rounded-full text-sm font-semibold hover:bg-brand-red hover:text-white transition-all">{page_data["category_name"]}</a>', 
-                     new_page)
-    
-    # Replace date
-    new_page = re.sub(r'<span>([A-Za-z]+ \d{1,2}, \d{4})</span>', 
-                     f'<span>{page_data["date"]}</span>', 
-                     new_page)
-    
-    # Replace image
-    new_page = re.sub(r'<img src="[^"]*"[^>]*class="w-full h-auto object-cover', 
-                     f'<img src="{page_data["image"]}" alt="{page_data["title"]}" class="w-full h-auto object-cover', 
-                     new_page)
-    
-    # Replace article content
-    content_pattern = r'<div class="article-content text-lg">.*?<div class="flex items-center justify-between py-6 border-t'
-    content_replacement = f'<div class="article-content text-lg">{page_data["content"]}</div>\n\n                <!-- Share -->\n                <div class="flex items-center justify-between py-6 border-t'
-    new_page = re.sub(content_pattern, content_replacement, new_page, flags=re.DOTALL)
-    
-    return new_page
+import re
 
 def main():
-    print("=" * 70)
-    print("APPLYING PERFECT DESIGN TO ALL PAGES")
-    print("=" * 70)
+    print("=" * 60)
+    print("SIMPLE REDESIGN SCRIPT")
+    print("=" * 60)
+    
+    # Find all HTML files
+    all_files = glob.glob('**/*.html', recursive=True)
+    print(f"Found {len(all_files)} HTML files")
+    
+    if not all_files:
+        print("❌ No HTML files found!")
+        return
+    
+    # Use the first HTML file as template
+    template_file = all_files[0]
+    print(f"Using template: {template_file}")
+    
+    # Read template
+    with open(template_file, 'r', encoding='utf-8', errors='ignore') as f:
+        template = f.read()
     
     processed = 0
-    errors = 0
     
-    for filepath in glob.glob('**/*.html', recursive=True):
-        # Skip the template file itself and category pages
-        if filepath == TEMPLATE_FILE or '/category/' in filepath.replace('\\', '/'):
+    for filepath in all_files:
+        if filepath == template_file:
             continue
-        if filepath in ('index.html', 'apply_design.py'):
-            continue
-        
-        print(f"\n📄 Processing: {filepath}")
+            
+        print(f"\nProcessing: {filepath}")
         
         try:
-            # Read the current page
+            # Read current file
             with open(filepath, 'r', encoding='utf-8', errors='ignore') as f:
-                old_html = f.read()
-            
-            # Extract its unique content
-            page_data = extract_page_content(old_html)
+                content = f.read()
             
             # Create backup
-            backup_path = filepath + '.backup'
-            with open(backup_path, 'w', encoding='utf-8') as f:
-                f.write(old_html)
+            backup = filepath + '.backup'
+            with open(backup, 'w', encoding='utf-8') as f:
+                f.write(content)
             
-            # Create new page with perfect design
-            new_html = create_page_from_design(page_data)
+            # Extract title
+            title_match = re.search(r'<title>(.*?)</title>', content)
+            title = title_match.group(1) if title_match else "MULTIBET Article"
             
-            # Write new page
+            # Create new content with template structure
+            new_content = template
+            
+            # Simple replacement - just update title for now
+            new_content = re.sub(r'<title>.*?</title>', f'<title>{title}</title>', new_content)
+            
+            # Write new file
             with open(filepath, 'w', encoding='utf-8') as f:
-                f.write(new_html)
+                f.write(new_content)
             
             processed += 1
-            print(f"  ✅ Updated: {page_data['title'][:50]}...")
+            print(f"  ✅ Updated")
             
         except Exception as e:
-            errors += 1
             print(f"  ❌ Error: {e}")
     
-    print("\n" + "=" * 70)
-    print(f"✅ COMPLETE! Updated: {processed}, Errors: {errors}")
-    print("=" * 70)
+    print(f"\n✅ Done! Updated {processed} files")
 
 if __name__ == '__main__':
     main()
 EOF
 
-      - name: Run script
-        env:
-          TEMPLATE_FILE: ${{ steps.find_template.outputs.template_file }}
-        run: python3 apply_design.py
+      - name: Run redesign script
+        run: python3 redesign.py
         
       - name: Commit changes
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
-          commit_message: "Apply perfect design to all pages"
+          commit_message: "Apply redesign to all pages"
           file_pattern: '*.html'
