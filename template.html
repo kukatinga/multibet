@@ -1,226 +1,323 @@
-<!DOCTYPE html>
-<html lang="en-US" prefix="og: https://ogp.me/ns#">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pixel-Perfect Article Template | MULTIBET</title>
-    <meta name="description" content="Fully featured HTML article template with sidebar, TOC, share buttons, newsletter, navigation, author box, and animations.">
+#!/usr/bin/env python3
+"""
+Template-based HTML converter for MULTIBET
+Usage: python3 convert_with_template.py
+"""
 
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+import os
+import re
+import glob
+from datetime import datetime
+import random
 
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
+# Configuration
+TEMPLATE_FILE = "template.html"  # Your master template
+IMGUR_IMAGES = [
+    "https://i.imgur.com/ygFk5oT.jpg", "https://i.imgur.com/rxC9MAj.jpg",
+    "https://i.imgur.com/mG2T8IS.jpg", "https://i.imgur.com/jzFnQlJ.jpg",
+    "https://i.imgur.com/w6dLBn6.jpg", "https://i.imgur.com/z5vDEJs.jpg",
+    "https://i.imgur.com/fhUbwy6.jpg", "https://i.imgur.com/FlRylsY.jpg",
+    "https://i.imgur.com/wHOPtRW.jpg", "https://i.imgur.com/S6J5ZEX.jpg",
+    "https://i.imgur.com/2H9nodm.jpg", "https://i.imgur.com/PqIWVIz.jpg",
+    "https://i.imgur.com/r7MIR8x.jpg", "https://i.imgur.com/ridLkYv.jpg",
+    "https://i.imgur.com/J5P6sSa.jpg", "https://i.imgur.com/2ssF86m.jpg",
+    "https://i.imgur.com/kc2AIq8.jpg",
+]
 
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
+def load_template():
+    """Load the master template"""
+    with open(TEMPLATE_FILE, 'r', encoding='utf-8') as f:
+        return f.read()
 
-    <style>
-        /* Gradient text */
-        .gradient-text {
-            background: linear-gradient(135deg, #f84643 0%, #ff6b6b 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
+def extract_from_old_html(html):
+    """Extract all data from old HTML files"""
+    data = {
+        'title': '',
+        'description': '',
+        'category_slug': 'news',
+        'category_name': 'News',
+        'date': '',
+        'image': '',
+        'content': '',
+        'read_time': '5',
+        'slug': ''
+    }
+    
+    # Extract title
+    title_match = re.search(r'<title>(.*?)(?:\s*\|\s*MULTIBET)?</title>', html, re.DOTALL)
+    if title_match:
+        data['title'] = title_match.group(1).strip()
+    
+    # Extract description
+    desc_match = re.search(r'<meta name="description" content="([^"]*)"', html)
+    if desc_match:
+        data['description'] = desc_match.group(1)
+    
+    # Extract date
+    date_match = re.search(r'<span[^>]*>([A-Za-z]+ \d{1,2}, \d{4})</span>', html)
+    if date_match:
+        data['date'] = date_match.group(1)
+    
+    # Extract category
+    cat_match = re.search(r'<a href="/category/([^/]+)/"[^>]*>([^<]+)</a>', html)
+    if cat_match:
+        data['category_slug'] = cat_match.group(1)
+        data['category_name'] = cat_match.group(2)
+    
+    # Extract image
+    img_match = re.search(r'<img[^>]*src="([^"]*)"[^>]*class="[^"]*w-full[^"]*"', html)
+    if img_match:
+        data['image'] = img_match.group(1)
+    if not data['image']:
+        data['image'] = random.choice(IMGUR_IMAGES)
+    
+    # Extract content - THIS IS THE KEY PART
+    # Try multiple patterns to find the main content
+    content_patterns = [
+        r'<div class="article-content[^>]*>(.*?)</div>\s*<div class="flex items-center justify-between',
+        r'<div class="entry-content[^>]*>(.*?)</div>',
+        r'<article[^>]*>(.*?)</article>',
+        r'<div class="[^"]*content[^"]*"[^>]*>(.*?)</div>'
+    ]
+    
+    for pattern in content_patterns:
+        content_match = re.search(pattern, html, re.DOTALL | re.IGNORECASE)
+        if content_match:
+            raw_content = content_match.group(1)
+            # Clean up the content
+            raw_content = re.sub(r'<script.*?>.*?</script>', '', raw_content, flags=re.DOTALL)
+            raw_content = re.sub(r'<style.*?>.*?</style>', '', raw_content, flags=re.DOTALL)
+            data['content'] = raw_content.strip()
+            break
+    
+    # If still no content, extract paragraphs
+    if not data['content']:
+        paragraphs = re.findall(r'<p[^>]*>.*?</p>', html, re.DOTALL)
+        if paragraphs:
+            data['content'] = '\n'.join(paragraphs[:15])
+    
+    return data
 
-        /* Glass effect for cards */
-        .glass-effect {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        /* Hover lift animation */
-        .hover-lift {
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        .hover-lift:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 20px 40px rgba(248, 70, 67, 0.15);
-        }
-
-        /* Article content */
-        .article-content p {margin-bottom: 1.5rem; line-height: 1.8; color: #374151;}
-        .article-content h2 {font-family: 'Space Grotesk', sans-serif; font-size: 1.875rem; font-weight: 700; margin-top: 2.5rem; margin-bottom: 1rem; color: #111827;}
-        .article-content ul {margin-bottom: 1.5rem; padding-left: 1.5rem;}
-        .article-content li {margin-bottom: 0.5rem; position: relative; padding-left: 1.5rem;}
-        .article-content li::before {content: ''; position: absolute; left: 0; top: 0.6rem; width: 6px; height: 6px; background: #f84643; border-radius: 50%;}
-
-        /* TOC */
-        .toc-link {position: relative; padding-left: 2rem; cursor: pointer;}
-        .toc-link::before {
-            content: attr(data-num);
-            position: absolute; left: 0; top: 0;
-            width: 1.5rem; height: 1.5rem; background: #f84643;
-            color: white; border-radius: 50%;
-            font-size: 0.75rem; display: flex;
-            align-items: center; justify-content: center;
-            font-weight: 600;
-        }
-
-        /* Reading progress */
-        .reading-progress {position: fixed; top: 0; left: 0; height: 3px; background: linear-gradient(90deg,#f84643,#ff6b6b); z-index: 9999; transition: width 0.1s;}
-
-        /* Animations */
-        .animate-slide-up {opacity: 0; transform: translateY(20px); transition: all 0.6s ease-out;}
-        .animate-slide-up.visible {opacity:1; transform:translateY(0);}
-    </style>
-</head>
-<body class="bg-gray-50 font-sans antialiased">
-
-    <!-- Reading Progress Bar -->
-    <div class="reading-progress" id="readingProgress"></div>
-
-    <!-- Header -->
-    <header class="bg-white border-b border-gray-200 sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between h-20">
-                <!-- Logo -->
-                <div class="flex items-center gap-3">
-                    <a href="/" class="flex items-center gap-3 group">
-                        <div class="w-12 h-12 bg-red-600 rounded-xl flex items-center justify-center transform group-hover:rotate-12 transition-transform">
-                            <span class="text-white font-bold text-xl font-display">M</span>
-                        </div>
-                        <div>
-                            <h1 class="text-2xl font-bold font-display text-gray-900 tracking-tight">MULTIBET</h1>
-                            <p class="text-xs text-gray-500 uppercase tracking-widest">Your home of sportpesa mega jackpot</p>
-                        </div>
-                    </a>
-                </div>
-                <!-- Nav -->
-                <nav class="hidden md:flex items-center gap-8">
-                    <a href="/" class="text-gray-700 hover:text-red-600 font-medium transition-colors">Home</a>
-                    <a href="/category/reviews/" class="text-red-600 font-semibold">Reviews</a>
-                    <a href="/category/predictions/" class="text-gray-700 hover:text-red-600 font-medium transition-colors">Predictions</a>
-                    <a href="/category/news/" class="text-gray-700 hover:text-red-600 font-medium transition-colors">News</a>
-                </nav>
-            </div>
-        </div>
-    </header>
-
-    <!-- Main -->
-    <main class="max-w-7xl mx-auto px-4 py-8 grid lg:grid-cols-12 gap-8">
-
-        <!-- Article -->
-        <article class="lg:col-span-8 animate-slide-up" id="article">
-            <h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold font-display text-gray-900 leading-tight mb-6">Pixel-Perfect Article Template</h1>
-
-            <!-- Table of Contents -->
-            <div class="bg-white p-4 rounded-xl border mb-6">
-                <h2 class="font-semibold text-lg mb-2">Table of Contents</h2>
-                <ul class="space-y-1">
-                    <li class="toc-link" data-num="1" onclick="scrollToSection('toc-section-1')">Share Buttons</li>
-                    <li class="toc-link" data-num="2" onclick="scrollToSection('toc-section-2')">Newsletter Subscription</li>
-                    <li class="toc-link" data-num="3" onclick="scrollToSection('toc-section-3')">Previous/Next Articles</li>
-                    <li class="toc-link" data-num="4" onclick="scrollToSection('toc-section-4')">Author Bio Box</li>
-                    <li class="toc-link" data-num="5" onclick="scrollToSection('toc-section-5')">Sidebar Widgets</li>
-                </ul>
-            </div>
-
-            <div class="article-content text-lg">
-                <h2 id="toc-section-1">Share Buttons</h2>
-                <div class="flex gap-3 my-4">
-                    <a href="#" class="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center hover:bg-blue-700"><i data-lucide="facebook" class="w-5 h-5"></i></a>
-                    <a href="#" class="w-10 h-10 rounded-full bg-sky-400 text-white flex items-center justify-center hover:bg-sky-500"><i data-lucide="twitter" class="w-5 h-5"></i></a>
-                    <button onclick="copyLink()" class="w-10 h-10 rounded-full bg-gray-200 text-gray-700 flex items-center justify-center hover:bg-gray-300"><i data-lucide="link" class="w-5 h-5"></i></button>
-                    <button onclick="window.print()" class="w-10 h-10 rounded-full bg-gray-200 text-gray-700 flex items-center justify-center hover:bg-gray-300"><i data-lucide="printer" class="w-5 h-5"></i></button>
-                </div>
-
-                <h2 id="toc-section-2">Newsletter Subscription</h2>
-                <form class="my-4 space-y-3">
-                    <input type="email" placeholder="Your email address" class="w-full px-4 py-2 rounded-lg bg-gray-100 border border-gray-300 focus:outline-none">
-                    <button type="submit" class="w-full py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700">Subscribe</button>
-                </form>
-
-                <h2 id="toc-section-3">Previous/Next Articles</h2>
-                <div class="grid sm:grid-cols-2 gap-4 my-4">
-                    <a href="#" class="block p-4 border rounded-xl hover-lift hover:border-red-600 transition-all">
-                        <img src="https://via.placeholder.com/150" alt="Prev" class="w-full rounded-lg mb-2">
-                        <p class="text-gray-800 font-semibold">Previous Article Title</p>
-                    </a>
-                    <a href="#" class="block p-4 border rounded-xl hover-lift hover:border-red-600 transition-all">
-                        <img src="https://via.placeholder.com/150" alt="Next" class="w-full rounded-lg mb-2">
-                        <p class="text-gray-800 font-semibold">Next Article Title</p>
-                    </a>
-                </div>
-
-                <h2 id="toc-section-4">Author Bio Box</h2>
-                <div class="bg-gray-50 rounded-xl p-6 flex gap-4 items-start my-4 hover-lift transition-shadow">
-                    <img src="https://secure.gravatar.com/avatar?d=mm&s=100" alt="Author" class="w-16 h-16 rounded-full border-2 border-white shadow-md">
-                    <div>
-                        <h3 class="font-bold text-gray-900">Author Name</h3>
-                        <p class="text-sm text-gray-500">Expert writer and analyst covering betting and gaming since 2018.</p>
+def generate_table_of_contents(content):
+    """Generate TOC HTML from h2 headings"""
+    headings = re.findall(r'<h2[^>]*>(.*?)</h2>', content)
+    if len(headings) < 2:
+        return ''
+    
+    toc_items = []
+    for i, heading in enumerate(headings, 1):
+        clean_heading = re.sub(r'<[^>]+>', '', heading).strip()
+        heading_id = re.sub(r'[^a-zA-Z0-9]+', '-', clean_heading.lower()).strip('-')
+        toc_items.append(f'''
+                <a href="#{heading_id}" class="toc-link block text-gray-700 hover:text-brand-red transition-colors text-sm font-medium" data-num="{i}">{clean_heading}</a>''')
+    
+    return f'''
+                <!-- Table of Contents -->
+                <div class="bg-gray-50 rounded-xl p-6 my-8 border border-gray-200">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-display font-bold text-lg text-gray-900">Table of Contents</h3>
+                        <button onclick="toggleToc()" class="text-sm text-brand-red font-medium hover:underline">Hide</button>
                     </div>
-                </div>
+                    <nav id="toc" class="space-y-3">
+                        {''.join(toc_items)}
+                    </nav>
+                </div>'''
 
-                <h2 id="toc-section-5">Sidebar Widgets</h2>
-                <p>The sidebar contains related posts, categories, and popular posts. Fully responsive and interactive.</p>
-            </div>
-        </article>
+def add_heading_ids(content):
+    """Add id attributes to h2 headings"""
+    def replace_h2(match):
+        heading_text = re.sub(r'<[^>]+>', '', match.group(0)).strip()
+        heading_id = re.sub(r'[^a-zA-Z0-9]+', '-', heading_text.lower()).strip('-')
+        return f'<h2 id="{heading_id}">{heading_text}</h2>'
+    
+    return re.sub(r'<h2[^>]*>(.*?)</h2>', replace_h2, content, flags=re.DOTALL)
 
-        <!-- Sidebar -->
-        <aside class="lg:col-span-4 space-y-6">
-            <div class="bg-white rounded-xl border border-gray-200 p-6 hover-lift transition-shadow">
-                <h3 class="font-display font-bold text-lg text-gray-900 mb-4">Related Posts</h3>
-                <ul class="space-y-3">
-                    <li><a href="#" class="text-gray-700 hover:text-red-600">Example Related Post 1</a></li>
-                    <li><a href="#" class="text-gray-700 hover:text-red-600">Example Related Post 2</a></li>
-                    <li><a href="#" class="text-gray-700 hover:text-red-600">Example Related Post 3</a></li>
-                </ul>
-            </div>
+def get_all_slugs():
+    """Get all page slugs for navigation"""
+    slugs = []
+    for fp in sorted(glob.glob('**/*.html', recursive=True)):
+        if fp in ('index.html', 'template.html') or '/category/' in fp.replace('\\', '/'):
+            continue
+        # Extract slug from path
+        if fp.endswith('/index.html'):
+            slug = fp.replace('/index.html', '').split('/')[-1]
+        else:
+            slug = fp.replace('.html', '').split('/')[-1]
+        if slug and slug not in ('index', ''):
+            slugs.append(slug)
+    return slugs
 
-            <div class="bg-white rounded-xl border border-gray-200 p-6 hover-lift transition-shadow">
-                <h3 class="font-display font-bold text-lg text-gray-900 mb-4">Categories</h3>
-                <ul class="space-y-2">
-                    <li><a href="#" class="text-gray-700 hover:text-red-600">Predictions</a></li>
-                    <li><a href="#" class="text-gray-700 hover:text-red-600">Reviews</a></li>
-                    <li><a href="#" class="text-gray-700 hover:text-red-600">News</a></li>
-                </ul>
-            </div>
+def generate_prev_next(current_slug, all_slugs):
+    """Generate previous/next post HTML"""
+    if current_slug not in all_slugs:
+        return '<div></div>', '<div></div>'
+    
+    idx = all_slugs.index(current_slug)
+    prev_html = '<div></div>'
+    next_html = '<div></div>'
+    
+    if idx > 0:
+        prev_slug = all_slugs[idx - 1]
+        prev_title = prev_slug.replace('-', ' ').title()
+        prev_img = random.choice(IMGUR_IMAGES)
+        prev_html = f'''
+                <a href="/{prev_slug}/" class="group flex gap-4 p-4 rounded-xl border border-gray-200 hover:border-brand-red hover:shadow-lg transition-all">
+                    <img src="{prev_img}" alt="Previous" class="w-20 h-20 object-cover rounded-lg shrink-0">
+                    <div>
+                        <span class="text-xs text-brand-red font-semibold uppercase flex items-center gap-1 mb-1">
+                            <i data-lucide="arrow-left" class="w-3 h-3"></i>
+                            Previous
+                        </span>
+                        <h4 class="font-semibold text-gray-900 line-clamp-2 group-hover:text-brand-red transition-colors">{prev_title}</h4>
+                    </div>
+                </a>'''
+    
+    if idx < len(all_slugs) - 1:
+        next_slug = all_slugs[idx + 1]
+        next_title = next_slug.replace('-', ' ').title()
+        next_img = random.choice(IMGUR_IMAGES)
+        next_html = f'''
+                <a href="/{next_slug}/" class="group flex gap-4 p-4 rounded-xl border border-gray-200 hover:border-brand-red hover:shadow-lg transition-all text-right sm:text-left sm:flex-row-reverse">
+                    <img src="{next_img}" alt="Next" class="w-20 h-20 object-cover rounded-lg shrink-0">
+                    <div>
+                        <span class="text-xs text-brand-red font-semibold uppercase flex items-center gap-1 mb-1 sm:justify-end">
+                            Next
+                            <i data-lucide="arrow-right" class="w-3 h-3"></i>
+                        </span>
+                        <h4 class="font-semibold text-gray-900 line-clamp-2 group-hover:text-brand-red transition-colors">{next_title}</h4>
+                    </div>
+                </a>'''
+    
+    return prev_html, next_html
 
-            <div class="bg-white rounded-xl border border-gray-200 p-6 hover-lift transition-shadow">
-                <h3 class="font-display font-bold text-lg text-gray-900 mb-4">Popular Posts</h3>
-                <ul class="space-y-3">
-                    <li><a href="#" class="text-gray-700 hover:text-red-600">Popular Post 1</a></li>
-                    <li><a href="#" class="text-gray-700 hover:text-red-600">Popular Post 2</a></li>
-                    <li><a href="#" class="text-gray-700 hover:text-red-600">Popular Post 3</a></li>
-                </ul>
-            </div>
-        </aside>
+def generate_related(current_slug, all_slugs):
+    """Generate related posts HTML"""
+    others = [s for s in all_slugs if s != current_slug]
+    if not others:
+        return '<p class="text-gray-500">No related posts</p>'
+    
+    picks = random.sample(others, min(3, len(others)))
+    items = []
+    for slug in picks:
+        title = slug.replace('-', ' ').title()
+        img = random.choice(IMGUR_IMAGES)
+        items.append(f'''
+                        <a href="/{slug}/" class="group flex gap-3">
+                            <img src="{img}" alt="" class="w-20 h-14 object-cover rounded-lg shrink-0">
+                            <div>
+                                <h4 class="text-sm font-semibold text-gray-900 line-clamp-2 group-hover:text-brand-red transition-colors">{title}</h4>
+                                <span class="text-xs text-gray-500">Latest</span>
+                            </div>
+                        </a>''')
+    
+    return '\n'.join(items)
 
-    </main>
+def build_page(template, data, toc_html, prev_html, next_html, related_html, current_slug, all_slugs):
+    """Replace all placeholders in template with actual data"""
+    
+    replacements = {
+        '{{TITLE}}': data['title'],
+        '{{DESCRIPTION}}': data['description'],
+        '{{CATEGORY_SLUG}}': data['category_slug'],
+        '{{CATEGORY_NAME}}': data['category_name'],
+        '{{DATE}}': data['date'],
+        '{{IMAGE}}': data['image'],
+        '{{CONTENT}}': add_heading_ids(data['content']),
+        '{{TABLE_OF_CONTENTS}}': toc_html,
+        '{{PREVIOUS_POST}}': prev_html,
+        '{{NEXT_POST}}': next_html,
+        '{{RELATED_POSTS}}': related_html,
+        '{{READ_TIME}}': data['read_time'],
+        '{{CURRENT_DATE}}': datetime.now().strftime('%A, %B %d, %Y'),
+        '{{CANONICAL_URL}}': f'/{current_slug}/',
+        '{{REVIEWS_ACTIVE}}': 'text-brand-red font-semibold' if data['category_slug'] == 'reviews' else 'text-gray-700 hover:text-brand-red font-medium transition-colors',
+        '{{PREDICTIONS_ACTIVE}}': 'text-brand-red font-semibold' if data['category_slug'] == 'predictions' else 'text-gray-700 hover:text-brand-red font-medium transition-colors',
+        '{{NEWS_ACTIVE}}': 'text-brand-red font-semibold' if data['category_slug'] == 'news' else 'text-gray-700 hover:text-brand-red font-medium transition-colors',
+    }
+    
+    result = template
+    for key, value in replacements.items():
+        result = result.replace(key, value)
+    
+    return result
 
-    <script>
-        // Reading Progress
-        document.addEventListener('scroll', () => {
-            const progress = document.getElementById('readingProgress');
-            const scrollTop = window.scrollY;
-            const docHeight = document.body.scrollHeight - window.innerHeight;
-            progress.style.width = ((scrollTop / docHeight) * 100) + '%';
-        });
+def main():
+    print("=" * 60)
+    print("MULTIBET Template-Based Page Converter")
+    print("=" * 60)
+    
+    # Load template
+    try:
+        template = load_template()
+        print(f"✅ Loaded template: {TEMPLATE_FILE}")
+    except FileNotFoundError:
+        print(f"❌ Template file '{TEMPLATE_FILE}' not found!")
+        return
+    
+    # Get all slugs for navigation
+    all_slugs = get_all_slugs()
+    print(f"📄 Found {len(all_slugs)} pages for navigation")
+    
+    # Process all HTML files
+    processed = 0
+    skipped = 0
+    errors = 0
+    
+    for filepath in glob.glob('**/*.html', recursive=True):
+        # Skip template and special files
+        if filepath in ('template.html', 'index.html') or '/category/' in filepath.replace('\\', '/'):
+            continue
+        
+        # Extract slug
+        if filepath.endswith('/index.html'):
+            slug = filepath.replace('/index.html', '').split('/')[-1]
+        else:
+            slug = filepath.replace('.html', '').split('/')[-1]
+        
+        if not slug or slug in ('index', ''):
+            continue
+        
+        print(f"\n🔄 Processing: {filepath} (slug: {slug})")
+        
+        try:
+            # Read old file
+            with open(filepath, 'r', encoding='utf-8', errors='ignore') as f:
+                old_html = f.read()
+            
+            # Create backup
+            backup_path = filepath + '.backup'
+            with open(backup_path, 'w', encoding='utf-8') as f:
+                f.write(old_html)
+            
+            # Extract data
+            data = extract_from_old_html(old_html)
+            data['slug'] = slug
+            
+            # Generate components
+            toc_html = generate_table_of_contents(data['content'])
+            prev_html, next_html = generate_prev_next(slug, all_slugs)
+            related_html = generate_related(slug, all_slugs)
+            
+            # Build new page
+            new_html = build_page(template, data, toc_html, prev_html, next_html, related_html, slug, all_slugs)
+            
+            # Write new file
+            with open(filepath, 'w', encoding='utf-8') as f:
+                f.write(new_html)
+            
+            processed += 1
+            print(f"  ✅ Updated: {data['title'][:50]}...")
+            
+        except Exception as e:
+            errors += 1
+            print(f"  ❌ Error: {str(e)}")
+    
+    print("\n" + "=" * 60)
+    print(f"✅ Conversion Complete!")
+    print(f"   Processed: {processed}")
+    print(f"   Errors: {errors}")
+    print(f"   Backup files created with .backup extension")
+    print("=" * 60)
 
-        // Smooth scroll for TOC
-        function scrollToSection(id) {
-            document.getElementById(id).scrollIntoView({behavior:'smooth'});
-        }
-
-        // Copy link
-        function copyLink() {
-            navigator.clipboard.writeText(window.location.href);
-            alert('Link copied!');
-        }
-
-        // Animate on scroll
-        const observer = new IntersectionObserver(entries => {
-            entries.forEach(entry => {
-                if(entry.isIntersecting) entry.target.classList.add('visible');
-            });
-        }, { threshold: 0.1 });
-        document.querySelectorAll('.animate-slide-up').forEach(el => observer.observe(el));
-        lucide.createIcons();
-    </script>
-</body>
-</html>
+if __name__ == '__main__':
+    main()
