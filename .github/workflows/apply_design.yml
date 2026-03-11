@@ -10,129 +10,15 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       
-      - name: Debug - List all files
+      - name: Debug - List files
         run: |
           echo "Current directory: $(pwd)"
           echo "Files in root:"
           ls -la
           echo ""
-          echo "All HTML files:"
-          find . -name "*.html" -type f | head -20
-          echo ""
-          echo "First few lines of first HTML file:"
-          FIRST_HTML=$(find . -name "*.html" -type f | head -1)
-          if [ -n "$FIRST_HTML" ]; then
-            echo "Checking: $FIRST_HTML"
-            head -20 "$FIRST_HTML"
-          else
-            echo "NO HTML FILES FOUND!"
-          fi
-
-      - name: Find template file
-        id: find_template
-        run: |
-          TEMPLATE_FILE=$(find . -name "*.html" -type f | head -1)
-          echo "template_file=$TEMPLATE_FILE" >> $GITHUB_OUTPUT
-          echo "Using template: $TEMPLATE_FILE"
-
-      - name: Create simple Python script
-        run: |
-          cat > apply_design.py << 'END_PYTHON1'
-#!/usr/bin/env python3
-import os
-import glob
-
-print("=" * 50)
-print("SIMPLE TEST SCRIPT")
-print("=" * 50)
-
-html_files = glob.glob('**/*.html', recursive=True)
-print(f"Found {len(html_files)} HTML files:")
-
-for i, f in enumerate(html_files[:10]):
-    print(f"  {i+1}. {f}")
-
-if len(html_files) > 10:
-    print(f"  ... and {len(html_files)-10} more")
-
-for f in html_files[:3]:
-    try:
-        with open(f, 'r', encoding='utf-8', errors='ignore') as file:
-            content = file.read()
-            print(f"\n✅ Can read: {f} ({len(content)} bytes)")
-            print(f"Preview: {content[:200]}...")
-    except Exception as e:
-        print(f"❌ Cannot read {f}: {e}")
-
-print("\n" + "=" * 50)
-END_PYTHON1
-
-      - name: Run test script
-        run: python3 apply_design.py
-        
-      - name: Create fixed redesign script
-        run: |
-          cat > redesign.py << 'END_PYTHON2'
-#!/usr/bin/env python3
-import os
-import glob
-import re
-
-def main():
-    print("=" * 60)
-    print("SIMPLE REDESIGN SCRIPT")
-    print("=" * 60)
-    
-    all_files = glob.glob('**/*.html', recursive=True)
-    print(f"Found {len(all_files)} HTML files")
-    
-    if not all_files:
-        print("❌ No HTML files found!")
-        return
-    
-    template_file = all_files[0]
-    print(f"Using template: {template_file}")
-    
-    with open(template_file, 'r', encoding='utf-8', errors='ignore') as f:
-        template = f.read()
-    
-    processed = 0
-    
-    for filepath in all_files:
-        if filepath == template_file:
-            continue
-            
-        print(f"\nProcessing: {filepath}")
-        
-        try:
-            with open(filepath, 'r', encoding='utf-8', errors='ignore') as f:
-                content = f.read()
-            
-            backup = filepath + '.backup'
-            with open(backup, 'w', encoding='utf-8') as f:
-                f.write(content)
-            
-            title_match = re.search(r'<title>(.*?)</title>', content)
-            title = title_match.group(1) if title_match else "MULTIBET Article"
-            
-            new_content = template
-            new_content = re.sub(r'<title>.*?</title>', f'<title>{title}</title>', new_content)
-            
-            with open(filepath, 'w', encoding='utf-8') as f:
-                f.write(new_content)
-            
-            processed += 1
-            print(f"  ✅ Updated")
-            
-        except Exception as e:
-            print(f"  ❌ Error: {e}")
-    
-    print(f"\n✅ Done! Updated {processed} files")
-
-if __name__ == '__main__':
-    main()
-END_PYTHON2
-
+          echo "HTML files found:"
+          find . -name "*.html" -type f | head -10
+      
       - name: Run redesign script
         run: python3 redesign.py
         
