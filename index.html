@@ -10,7 +10,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,800;0,900;1,700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
     
     <style>
-        /* Your existing CSS - unchanged */
         :root {
             --red: #e8132a;
             --gold: #f0b429;
@@ -585,10 +584,9 @@
     </div>
 
     <script>
-        const API_KEY = '123'; // Free TheSportsDB API key
+        const API_KEY = '123';
         const BASE_URL = 'https://www.thesportsdb.com/api/v1/json';
 
-        // League IDs for top European leagues
         const LEAGUES = {
             EPL: 4328,
             LaLiga: 4335,
@@ -597,29 +595,20 @@
             Ligue1: 4334
         };
 
-        // Helper to get confidence score (simulated based on league and match)
         function getConfidence(match) {
-            // This would be replaced with actual prediction logic
-            // For now, generate based on league and time
             const base = match.strLeague?.includes('Premier') ? 88 : 
                         match.strLeague?.includes('Liga') ? 85 : 
                         match.strLeague?.includes('Serie') ? 82 : 80;
-            
-            // Add some randomness
             return Math.min(96, base + Math.floor(Math.random() * 10));
         }
 
-        // Determine tip type (simulated)
         function determineTip(match) {
-            // 60% Double Chance, 40% Over 1.5
             const isDC = Math.random() > 0.4;
             
             if (isDC) {
                 const dcTypes = ['1X', '12', 'X2'];
                 const dcType = dcTypes[Math.floor(Math.random() * dcTypes.length)];
-                
-                // Generate odds based on DC type
-                const odds = (Math.random() * 0.4 + 1.25).toFixed(2); // 1.25 - 1.65
+                const odds = (Math.random() * 0.4 + 1.25).toFixed(2);
                 
                 return {
                     type: 'DC',
@@ -628,9 +617,7 @@
                     odds: odds
                 };
             } else {
-                // Over 1.5
-                const odds = (Math.random() * 0.35 + 1.35).toFixed(2); // 1.35 - 1.70
-                
+                const odds = (Math.random() * 0.35 + 1.35).toFixed(2);
                 return {
                     type: 'OVER',
                     dcType: null,
@@ -640,21 +627,22 @@
             }
         }
 
-        // Format date
         function formatDate() {
             const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
             const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+            
+            // Use Kenyan time for display
             const now = new Date();
+            now.setHours(now.getHours() + 3);
+            
             return days[now.getDay()] + ', ' + months[now.getMonth()] + ' ' + now.getDate();
         }
 
-        // Format time from API or generate realistic time
         function formatMatchTime(index) {
             const times = ['17:30', '18:15', '19:00', '19:45', '20:30', '21:00', '22:00', '16:00', '15:30', '14:00'];
             return times[index % times.length];
         }
 
-        // Fetch and render predictions
         async function fetchAndRenderPredictions(btn = null) {
             if (btn) btn.classList.add('spinning');
             
@@ -662,23 +650,20 @@
             tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px; color: var(--muted);">Fetching live matches...</td></tr>';
             
             try {
-    // Fix for Kenyan time (UTC+3)
-    const today = new Date();
-    today.setHours(today.getHours() + 3); // Adjust to Kenya time
-    const kenyanDate = today.toISOString().split('T')[0];
-    
-    console.log('Fetching matches for Kenyan date:', kenyanDate); // Debug
-    
-    // Fetch matches from multiple leagues
-    const promises = Object.values(LEAGUES).map(leagueId => 
-        fetch(`${BASE_URL}/${API_KEY}/eventsnextleague.php?id=${leagueId}`)
+                // KENYAN TIME FIX - Add 3 hours for UTC+3
+                const kenyanDate = new Date();
+                kenyanDate.setHours(kenyanDate.getHours() + 3);
+                const today = kenyanDate.toISOString().split('T')[0];
+                
+                console.log('Fetching matches for Kenyan date:', today); // Debug log
+                
+                const promises = Object.values(LEAGUES).map(leagueId => 
                     fetch(`${BASE_URL}/${API_KEY}/eventsnextleague.php?id=${leagueId}`)
                         .then(res => res.json())
                 );
                 
                 const results = await Promise.all(promises);
                 
-                // Collect all events
                 let allEvents = [];
                 results.forEach(result => {
                     if (result.events) {
@@ -690,8 +675,10 @@
                     throw new Error('No matches found');
                 }
                 
-                // Take first 10 matches and generate predictions
-                const predictions = allEvents.slice(0, 10).map((match, index) => {
+                // Shuffle array to get variety
+                const shuffled = allEvents.sort(() => 0.5 - Math.random());
+                
+                const predictions = shuffled.slice(0, 10).map((match, index) => {
                     const tip = determineTip(match);
                     const confidence = getConfidence(match);
                     
@@ -705,7 +692,7 @@
                         prediction: tip.prediction,
                         odds: tip.odds,
                         confidence: confidence,
-                        featured: index === 0 || confidence > 90 // First row or high confidence
+                        featured: index === 0 || confidence > 90
                     };
                 });
                 
@@ -713,8 +700,9 @@
                 
             } catch (error) {
                 console.error('API Error:', error);
-                // Fallback to sample data
+                // Fallback data with Kenyan teams for local relevance
                 const fallbackPredictions = [
+                    { home:'Gor Mahia', away:'AFC Leopards', league:'Kenyan Premier League', time:'16:00', tipType:'DC', dcType:'1X', odds:'1.35', confidence:92, featured:true },
                     { home:'Manchester City', away:'Liverpool', league:'English Premier League', time:'17:30', tipType:'DC', dcType:'1X', odds:'1.40', confidence:92, featured:true },
                     { home:'Arsenal', away:'Chelsea', league:'English Premier League', time:'20:00', tipType:'DC', dcType:'12', odds:'1.35', confidence:88, featured:false },
                     { home:'Real Madrid', away:'Barcelona', league:'La Liga', time:'21:00', tipType:'OVER', dcType:null, odds:'1.55', confidence:94, featured:true },
@@ -723,8 +711,7 @@
                     { home:'PSG', away:'Marseille', league:'Ligue 1', time:'22:00', tipType:'DC', dcType:'1X', odds:'1.30', confidence:89, featured:false },
                     { home:'Tottenham', away:'Newcastle', league:'English Premier League', time:'16:00', tipType:'OVER', dcType:null, odds:'1.60', confidence:85, featured:false },
                     { home:'Inter Milan', away:'Roma', league:'Serie A', time:'20:45', tipType:'DC', dcType:'12', odds:'1.38', confidence:80, featured:false },
-                    { home:'Atletico Madrid', away:'Sevilla', league:'La Liga', time:'18:15', tipType:'DC', dcType:'1X', odds:'1.42', confidence:83, featured:false },
-                    { home:'Leverkusen', away:'Leipzig', league:'Bundesliga', time:'17:00', tipType:'OVER', dcType:null, odds:'1.48', confidence:87, featured:false },
+                    { home:'Atletico Madrid', away:'Sevilla', league:'La Liga', time:'18:15', tipType:'DC', dcType:'1X', odds:'1.42', confidence:83, featured:false }
                 ];
                 renderTable(fallbackPredictions);
             }
@@ -732,7 +719,6 @@
             if (btn) btn.classList.remove('spinning');
         }
 
-        // Render table with predictions
         function renderTable(predictions) {
             const tbody = document.getElementById('predictionsBody');
             
