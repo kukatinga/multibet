@@ -662,10 +662,16 @@
             tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px; color: var(--muted);">Fetching live matches...</td></tr>';
             
             try {
-                const today = new Date().toISOString().split('T')[0];
-                
-                // Fetch matches from multiple leagues
-                const promises = Object.values(LEAGUES).map(leagueId => 
+    // Fix for Kenyan time (UTC+3)
+    const today = new Date();
+    today.setHours(today.getHours() + 3); // Adjust to Kenya time
+    const kenyanDate = today.toISOString().split('T')[0];
+    
+    console.log('Fetching matches for Kenyan date:', kenyanDate); // Debug
+    
+    // Fetch matches from multiple leagues
+    const promises = Object.values(LEAGUES).map(leagueId => 
+        fetch(`${BASE_URL}/${API_KEY}/eventsnextleague.php?id=${leagueId}`)
                     fetch(`${BASE_URL}/${API_KEY}/eventsnextleague.php?id=${leagueId}`)
                         .then(res => res.json())
                 );
