@@ -627,20 +627,51 @@
             }
         }
 
-        function formatDate() {
+        function formatDate(date) {
             const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
             const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
             
-            // Use Kenyan time for display
-            const now = new Date();
-            now.setHours(now.getHours() + 3);
-            
-            return days[now.getDay()] + ', ' + months[now.getMonth()] + ' ' + now.getDate();
+            return days[date.getDay()] + ', ' + months[date.getMonth()] + ' ' + date.getDate();
         }
 
         function formatMatchTime(index) {
             const times = ['17:30', '18:15', '19:00', '19:45', '20:30', '21:00', '22:00', '16:00', '15:30', '14:00'];
             return times[index % times.length];
+        }
+
+        // NEW: Function to get Kenyan date with offset
+        function getKenyanDate(offsetDays = 0) {
+            const date = new Date();
+            date.setHours(date.getHours() + 3); // UTC+3 for Kenya
+            date.setDate(date.getDate() + offsetDays);
+            return date;
+        }
+
+        // NEW: Function to fetch matches for a specific date
+        async function fetchMatchesForDate(date) {
+            const dateStr = date.toISOString().split('T')[0];
+            console.log('Fetching matches for:', dateStr);
+            
+            const promises = Object.values(LEAGUES).map(leagueId => 
+                fetch(`${BASE_URL}/${API_KEY}/eventsnextleague.php?id=${leagueId}`)
+                    .then(res => res.json())
+            );
+            
+            const results = await Promise.all(promises);
+            
+            let allEvents = [];
+            results.forEach(result => {
+                if (result.events) {
+                    // Filter events for the specific date
+                    const eventsForDate = result.events.filter(event => {
+                        const eventDate = event.dateEvent || event.strDate;
+                        return eventDate === dateStr;
+                    });
+                    allEvents = allEvents.concat(eventsForDate);
+                }
+            });
+            
+            return allEvents;
         }
 
         async function fetchAndRenderPredictions(btn = null) {
@@ -650,32 +681,34 @@
             tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px; color: var(--muted);">Fetching live matches...</td></tr>';
             
             try {
-                // KENYAN TIME FIX - Add 3 hours for UTC+3
-                const kenyanDate = new Date();
-                kenyanDate.setHours(kenyanDate.getHours() + 3);
-                const today = kenyanDate.toISOString().split('T')[0];
-                
-                console.log('Fetching matches for Kenyan date:', today); // Debug log
-                
-                const promises = Object.values(LEAGUES).map(leagueId => 
-                    fetch(`${BASE_URL}/${API_KEY}/eventsnextleague.php?id=${leagueId}`)
-                        .then(res => res.json())
-                );
-                
-                const results = await Promise.all(promises);
-                
                 let allEvents = [];
-                results.forEach(result => {
-                    if (result.events) {
-                        allEvents = allEvents.concat(result.events);
-                    }
-                });
+                let currentDate = getKenyanDate(0); // Start with today
+                let daysChecked = 0;
+                let usedDate = currentDate;
                 
-                if (allEvents.length === 0) {
-                    throw new Error('No matches found');
+                // Try today, then tomorrow, then next days until we find matches
+                while (allEvents.length < 5 && daysChecked < 7) {
+                    allEvents = await fetchMatchesForDate(currentDate);
+                    
+                    if (allEvents.length > 0) {
+                        usedDate = currentDate;
+                        console.log(`Found ${allEvents.length} matches for ${currentDate.toISOString().split('T')[0]}`);
+                        break;
+                    }
+                    
+                    daysChecked++;
+                    currentDate = getKenyanDate(daysChecked); // Try next day
                 }
                 
-                // Shuffle array to get variety
+                // Update the date label to show which date we're displaying
+                document.getElementById('dateLabel').textContent = formatDate(usedDate);
+                
+                if (allEvents.length === 0) {
+                    // If no matches found in next 7 days, use fallback
+                    throw new Error('No matches found in the next 7 days');
+                }
+                
+                // Shuffle and take first 10
                 const shuffled = allEvents.sort(() => 0.5 - Math.random());
                 
                 const predictions = shuffled.slice(0, 10).map((match, index) => {
@@ -700,7 +733,11 @@
                 
             } catch (error) {
                 console.error('API Error:', error);
-                // Fallback data with Kenyan teams for local relevance
+                
+                // Show message that we're showing next available matches
+                const today = getKenyanDate(0);
+                const nextMatchDay = getKenyanDate(1);
+                
                 const fallbackPredictions = [
                     { home:'Gor Mahia', away:'AFC Leopards', league:'Kenyan Premier League', time:'16:00', tipType:'DC', dcType:'1X', odds:'1.35', confidence:92, featured:true },
                     { home:'Manchester City', away:'Liverpool', league:'English Premier League', time:'17:30', tipType:'DC', dcType:'1X', odds:'1.40', confidence:92, featured:true },
@@ -713,6 +750,9 @@
                     { home:'Inter Milan', away:'Roma', league:'Serie A', time:'20:45', tipType:'DC', dcType:'12', odds:'1.38', confidence:80, featured:false },
                     { home:'Atletico Madrid', away:'Sevilla', league:'La Liga', time:'18:15', tipType:'DC', dcType:'1X', odds:'1.42', confidence:83, featured:false }
                 ];
+                
+                // Still update date label to show we're using next available
+                document.getElementById('dateLabel').textContent = formatDate(nextMatchDay) + ' (Next Available)';
                 renderTable(fallbackPredictions);
             }
             
@@ -730,7 +770,6 @@
             document.getElementById('statDC').textContent = dcCount;
             document.getElementById('statOver').textContent = overCount;
             document.getElementById('statBestOdds').textContent = bestOdds;
-            document.getElementById('dateLabel').textContent = formatDate();
 
             function confClass(n) {
                 if (n >= 88) return 'high';
