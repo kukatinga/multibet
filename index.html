@@ -32,6 +32,7 @@
             min-height: 100vh;
         }
 
+        /* ── HEADER ──────────────────────────────── */
         header {
             position: sticky;
             top: 0;
@@ -134,6 +135,7 @@
             animation: spin 0.6s linear infinite;
         }
 
+        /* ── HERO BAND ────────────────────────────── */
         .hero {
             background: linear-gradient(135deg, #1a0508 0%, #0d0d0f 50%, #0a0c1a 100%);
             border-bottom: 1px solid var(--border);
@@ -197,6 +199,7 @@
             font-weight: 500;
         }
 
+        /* ── STAT STRIP ───────────────────────────── */
         .stat-strip {
             background: var(--surface);
             border-bottom: 1px solid var(--border);
@@ -244,6 +247,7 @@
             font-weight: 600;
         }
 
+        /* ── LEGEND ────────────────────────────────── */
         .legend-bar {
             max-width: 1100px;
             margin: 0 auto;
@@ -293,6 +297,7 @@
             background: currentColor;
         }
 
+        /* ── TABLE ─────────────────────────────────── */
         .table-wrap {
             max-width: 1100px;
             margin: 0 auto 32px;
@@ -319,7 +324,6 @@
             border-bottom: 1px solid var(--border);
             transition: background 0.15s;
             cursor: default;
-            animation: fadeUp 0.35s ease both;
         }
 
         tbody tr:hover {
@@ -340,6 +344,7 @@
             vertical-align: middle;
         }
 
+        /* Teams cell */
         .teams-cell {
             display: flex;
             flex-direction: column;
@@ -360,6 +365,7 @@
             letter-spacing: 0.05em;
         }
 
+        /* League */
         .league-tag {
             font-size: 0.72rem;
             font-weight: 600;
@@ -367,6 +373,7 @@
             white-space: nowrap;
         }
 
+        /* Time */
         .time-box {
             font-family: 'Barlow Condensed', sans-serif;
             font-size: 1rem;
@@ -375,6 +382,7 @@
             letter-spacing: 0.02em;
         }
 
+        /* Tip badge */
         .tip-wrap {
             display: flex;
             flex-direction: column;
@@ -412,6 +420,7 @@
             font-weight: 500;
         }
 
+        /* Odds */
         .odds-box {
             font-family: 'Barlow Condensed', sans-serif;
             font-size: 1.3rem;
@@ -420,6 +429,7 @@
             letter-spacing: -0.5px;
         }
 
+        /* Confidence */
         .conf-wrap {
             display: flex;
             align-items: center;
@@ -455,6 +465,7 @@
         .conf-pct.mid  { color: var(--gold); }
         .conf-pct.low  { color: var(--red); }
 
+        /* Star for featured */
         .featured-star {
             display: inline-block;
             font-size: 0.65rem;
@@ -470,6 +481,7 @@
             vertical-align: middle;
         }
 
+        /* ── DISCLAIMER ─────────────────────────────── */
         .disclaimer {
             text-align: center;
             font-size: 0.72rem;
@@ -485,6 +497,7 @@
             border-radius: 20px;
         }
 
+        /* ── MOBILE ─────────────────────────────────── */
         @media (max-width: 700px) {
             .stat-strip-inner { grid-template-columns: repeat(2, 1fr); }
             .stat-item:nth-child(2) { border-right: none; }
@@ -497,14 +510,20 @@
             .odds-box { font-size: 1.1rem; }
         }
 
+        /* ── ENTRY ANIMATION ────────────────────────── */
         @keyframes fadeUp {
             from { opacity: 0; transform: translateY(12px); }
             to   { opacity: 1; transform: translateY(0); }
+        }
+
+        tbody tr {
+            animation: fadeUp 0.35s ease both;
         }
     </style>
 </head>
 <body>
 
+    <!-- HEADER -->
     <header>
         <div class="header-inner">
             <div class="logo">
@@ -520,6 +539,7 @@
         </div>
     </header>
 
+    <!-- HERO -->
     <div class="hero">
         <div class="hero-inner">
             <div class="hero-eyebrow">Today's Top Tips</div>
@@ -528,6 +548,7 @@
         </div>
     </div>
 
+    <!-- STAT STRIP -->
     <div class="stat-strip">
         <div class="stat-strip-inner">
             <div class="stat-item">
@@ -549,6 +570,7 @@
         </div>
     </div>
 
+    <!-- LEGEND -->
     <div class="legend-bar">
         <span class="legend-label">Guide:</span>
         <span class="chip chip-dc"><span class="chip-dot"></span>1X — Home or Draw</span>
@@ -557,6 +579,7 @@
         <span class="chip chip-over"><span class="chip-dot"></span>O1.5 — Over 1.5 Goals</span>
     </div>
 
+    <!-- TABLE -->
     <div class="table-wrap">
         <table>
             <thead>
@@ -569,16 +592,11 @@
                     <th>Conf.</th>
                 </tr>
             </thead>
-            <tbody id="predictionsBody">
-                <tr>
-                    <td colspan="6" style="text-align: center; padding: 40px; color: var(--muted);">
-                        Loading predictions...
-                    </td>
-                </tr>
-            </tbody>
+            <tbody id="predictionsBody"></tbody>
         </table>
     </div>
 
+    <!-- DISCLAIMER -->
     <div class="disclaimer">
         <span>18+ Only &nbsp;·&nbsp; Play Responsibly &nbsp;·&nbsp; Double Chance &amp; Over 1.5 are lower-risk markets</span>
     </div>
@@ -587,207 +605,128 @@
         const API_KEY = '123';
         const BASE_URL = 'https://www.thesportsdb.com/api/v1/json';
 
-        const LEAGUES = {
-            EPL: 4328,
-            LaLiga: 4335,
-            SerieA: 4332,
-            Bundesliga: 4331,
-            Ligue1: 4334
-        };
+        // League IDs to query
+        const LEAGUE_IDS = [4328, 4335, 4332, 4331, 4334]; // EPL, La Liga, Serie A, Bundesliga, Ligue 1
 
-        function getConfidence(match) {
-            const base = match.strLeague?.includes('Premier') ? 88 : 
-                        match.strLeague?.includes('Liga') ? 85 : 
-                        match.strLeague?.includes('Serie') ? 82 : 80;
+        // Get today's date in Kenyan time (UTC+3) as YYYY-MM-DD
+        function getKenyanToday() {
+            const now = new Date();
+            // Offset local time to UTC, then add 3 hours for EAT
+            const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+            const eat = new Date(utc + (3 * 3600000));
+            const y = eat.getFullYear();
+            const m = String(eat.getMonth() + 1).padStart(2, '0');
+            const d = String(eat.getDate()).padStart(2, '0');
+            return `${y}-${m}-${d}`;
+        }
+
+        function getDateLabel() {
+            const days   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+            const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+            const now = new Date();
+            const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+            const eat = new Date(utc + (3 * 3600000));
+            return days[eat.getDay()] + ', ' + months[eat.getMonth()] + ' ' + eat.getDate();
+        }
+
+        function determineTip() {
+            const isDC    = Math.random() > 0.4;
+            const dcTypes = ['1X', '12', 'X2'];
+            if (isDC) {
+                return {
+                    type:   'DC',
+                    dcType: dcTypes[Math.floor(Math.random() * dcTypes.length)],
+                    odds:   (Math.random() * 0.4 + 1.25).toFixed(2)
+                };
+            }
+            return { type: 'OVER', dcType: null, odds: (Math.random() * 0.35 + 1.35).toFixed(2) };
+        }
+
+        function getConfidence(leagueName) {
+            const base = leagueName?.toLowerCase().includes('premier') ? 88
+                       : leagueName?.toLowerCase().includes('liga')    ? 85
+                       : leagueName?.toLowerCase().includes('serie')   ? 82
+                       : 80;
             return Math.min(96, base + Math.floor(Math.random() * 10));
         }
 
-        function determineTip(match) {
-            const isDC = Math.random() > 0.4;
-            
-            if (isDC) {
-                const dcTypes = ['1X', '12', 'X2'];
-                const dcType = dcTypes[Math.floor(Math.random() * dcTypes.length)];
-                const odds = (Math.random() * 0.4 + 1.25).toFixed(2);
-                
-                return {
-                    type: 'DC',
-                    dcType: dcType,
-                    prediction: `Double Chance ${dcType}`,
-                    odds: odds
-                };
-            } else {
-                const odds = (Math.random() * 0.35 + 1.35).toFixed(2);
-                return {
-                    type: 'OVER',
-                    dcType: null,
-                    prediction: 'Over 1.5 Goals',
-                    odds: odds
-                };
-            }
-        }
-
-        function formatDate(date) {
-            const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-            const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-            
-            return days[date.getDay()] + ', ' + months[date.getMonth()] + ' ' + date.getDate();
-        }
-
-        function formatMatchTime(index) {
-            const times = ['17:30', '18:15', '19:00', '19:45', '20:30', '21:00', '22:00', '16:00', '15:30', '14:00'];
-            return times[index % times.length];
-        }
-
-        // NEW: Function to get Kenyan date with offset
-        function getKenyanDate(offsetDays = 0) {
-            const date = new Date();
-            date.setHours(date.getHours() + 3); // UTC+3 for Kenya
-            date.setDate(date.getDate() + offsetDays);
-            return date;
-        }
-
-        // NEW: Function to fetch matches for a specific date
-        async function fetchMatchesForDate(date) {
-            const dateStr = date.toISOString().split('T')[0];
-            console.log('Fetching matches for:', dateStr);
-            
-            const promises = Object.values(LEAGUES).map(leagueId => 
-                fetch(`${BASE_URL}/${API_KEY}/eventsnextleague.php?id=${leagueId}`)
-                    .then(res => res.json())
-            );
-            
-            const results = await Promise.all(promises);
-            
-            let allEvents = [];
-            results.forEach(result => {
-                if (result.events) {
-                    // Filter events for the specific date
-                    const eventsForDate = result.events.filter(event => {
-                        const eventDate = event.dateEvent || event.strDate;
-                        return eventDate === dateStr;
-                    });
-                    allEvents = allEvents.concat(eventsForDate);
-                }
-            });
-            
-            return allEvents;
+        // Format HH:MM from API time string (may be "17:30:00" or "17:30" or null)
+        function fmtTime(raw) {
+            if (!raw) return '—';
+            return raw.substring(0, 5);
         }
 
         async function fetchAndRenderPredictions(btn = null) {
             if (btn) btn.classList.add('spinning');
-            
+
             const tbody = document.getElementById('predictionsBody');
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px; color: var(--muted);">Fetching live matches...</td></tr>';
-            
+            tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--muted);">Fetching today's matches…</td></tr>`;
+
+            const today = getKenyanToday();
+            document.getElementById('dateLabel').textContent = getDateLabel();
+
             try {
-                let allEvents = [];
-                let currentDate = getKenyanDate(0); // Start with today
-                let daysChecked = 0;
-                let usedDate = currentDate;
-                
-                // Try today, then tomorrow, then next days until we find matches
-                while (allEvents.length < 5 && daysChecked < 7) {
-                    allEvents = await fetchMatchesForDate(currentDate);
-                    
-                    if (allEvents.length > 0) {
-                        usedDate = currentDate;
-                        console.log(`Found ${allEvents.length} matches for ${currentDate.toISOString().split('T')[0]}`);
-                        break;
-                    }
-                    
-                    daysChecked++;
-                    currentDate = getKenyanDate(daysChecked); // Try next day
-                }
-                
-                // Update the date label to show which date we're displaying
-                document.getElementById('dateLabel').textContent = formatDate(usedDate);
-                
-                if (allEvents.length === 0) {
-                    // If no matches found in next 7 days, use fallback
-                    throw new Error('No matches found in the next 7 days');
-                }
-                
-                // Shuffle and take first 10
-                const shuffled = allEvents.sort(() => 0.5 - Math.random());
-                
-                const predictions = shuffled.slice(0, 10).map((match, index) => {
-                    const tip = determineTip(match);
-                    const confidence = getConfidence(match);
-                    
+                // eventsday.php returns only matches on the specified date
+                const promises = LEAGUE_IDS.map(id =>
+                    fetch(`${BASE_URL}/${API_KEY}/eventsday.php?l=${id}&d=${today}`)
+                        .then(r => r.json())
+                        .catch(() => ({ events: [] }))
+                );
+
+                const results  = await Promise.all(promises);
+                let allEvents  = [];
+                results.forEach(r => { if (r.events) allEvents = allEvents.concat(r.events); });
+
+                if (allEvents.length === 0) throw new Error('No matches today');
+
+                // Shuffle and take up to 10
+                const shuffled = allEvents.sort(() => Math.random() - 0.5).slice(0, 10);
+
+                const predictions = shuffled.map((m, i) => {
+                    const tip = determineTip();
                     return {
-                        home: match.strHomeTeam,
-                        away: match.strAwayTeam,
-                        league: match.strLeague || 'Unknown League',
-                        time: match.strTime || formatMatchTime(index),
-                        tipType: tip.type,
-                        dcType: tip.dcType,
-                        prediction: tip.prediction,
-                        odds: tip.odds,
-                        confidence: confidence,
-                        featured: index === 0 || confidence > 90
+                        home:       m.strHomeTeam,
+                        away:       m.strAwayTeam,
+                        league:     m.strLeague || '',
+                        time:       fmtTime(m.strTime),
+                        tipType:    tip.type,
+                        dcType:     tip.dcType,
+                        odds:       tip.odds,
+                        confidence: getConfidence(m.strLeague),
+                        featured:   i === 0
                     };
                 });
-                
+
                 renderTable(predictions);
-                
-            } catch (error) {
-                console.error('API Error:', error);
-                
-                // Show message that we're showing next available matches
-                const today = getKenyanDate(0);
-                const nextMatchDay = getKenyanDate(1);
-                
-                const fallbackPredictions = [
-                    { home:'Gor Mahia', away:'AFC Leopards', league:'Kenyan Premier League', time:'16:00', tipType:'DC', dcType:'1X', odds:'1.35', confidence:92, featured:true },
-                    { home:'Manchester City', away:'Liverpool', league:'English Premier League', time:'17:30', tipType:'DC', dcType:'1X', odds:'1.40', confidence:92, featured:true },
-                    { home:'Arsenal', away:'Chelsea', league:'English Premier League', time:'20:00', tipType:'DC', dcType:'12', odds:'1.35', confidence:88, featured:false },
-                    { home:'Real Madrid', away:'Barcelona', league:'La Liga', time:'21:00', tipType:'OVER', dcType:null, odds:'1.55', confidence:94, featured:true },
-                    { home:'Bayern Munich', away:'Dortmund', league:'Bundesliga', time:'18:30', tipType:'OVER', dcType:null, odds:'1.45', confidence:91, featured:false },
-                    { home:'Juventus', away:'AC Milan', league:'Serie A', time:'19:45', tipType:'DC', dcType:'X2', odds:'1.50', confidence:82, featured:false },
-                    { home:'PSG', away:'Marseille', league:'Ligue 1', time:'22:00', tipType:'DC', dcType:'1X', odds:'1.30', confidence:89, featured:false },
-                    { home:'Tottenham', away:'Newcastle', league:'English Premier League', time:'16:00', tipType:'OVER', dcType:null, odds:'1.60', confidence:85, featured:false },
-                    { home:'Inter Milan', away:'Roma', league:'Serie A', time:'20:45', tipType:'DC', dcType:'12', odds:'1.38', confidence:80, featured:false },
-                    { home:'Atletico Madrid', away:'Sevilla', league:'La Liga', time:'18:15', tipType:'DC', dcType:'1X', odds:'1.42', confidence:83, featured:false }
-                ];
-                
-                // Still update date label to show we're using next available
-                document.getElementById('dateLabel').textContent = formatDate(nextMatchDay) + ' (Next Available)';
-                renderTable(fallbackPredictions);
+
+            } catch (err) {
+                console.warn('Live fetch failed, using fallback:', err.message);
+                renderTable(FALLBACK);
             }
-            
+
             if (btn) btn.classList.remove('spinning');
         }
 
+        // ── Shared render ────────────────────────────────────────────────────────
+        function confClass(n) { return n >= 88 ? 'high' : n >= 80 ? 'mid' : 'low'; }
+        function dcLabel(t)   { return { '1X':'Home or Draw', '12':'Home or Away', 'X2':'Draw or Away' }[t] || t; }
+
         function renderTable(predictions) {
-            const tbody = document.getElementById('predictionsBody');
-            
-            const dcCount = predictions.filter(p => p.tipType === 'DC').length;
+            const dcCount  = predictions.filter(p => p.tipType === 'DC').length;
             const overCount = predictions.filter(p => p.tipType === 'OVER').length;
             const bestOdds = Math.max(...predictions.map(p => parseFloat(p.odds))).toFixed(2);
-            
-            document.getElementById('statTotal').textContent = predictions.length;
-            document.getElementById('statDC').textContent = dcCount;
-            document.getElementById('statOver').textContent = overCount;
+
+            document.getElementById('statTotal').textContent    = predictions.length;
+            document.getElementById('statDC').textContent       = dcCount;
+            document.getElementById('statOver').textContent     = overCount;
             document.getElementById('statBestOdds').textContent = bestOdds;
 
-            function confClass(n) {
-                if (n >= 88) return 'high';
-                if (n >= 80) return 'mid';
-                return 'low';
-            }
-
-            function dcLabel(dcType) {
-                const map = { '1X':'Home or Draw', '12':'Home or Away', 'X2':'Draw or Away' };
-                return map[dcType] || dcType;
-            }
-
-            tbody.innerHTML = predictions.map((p, i) => {
-                const isDC = p.tipType === 'DC';
+            document.getElementById('predictionsBody').innerHTML = predictions.map((p, i) => {
+                const isDC     = p.tipType === 'DC';
                 const tipLabel = isDC ? p.dcType : 'O1.5';
                 const tipClass = isDC ? 'tip-dc' : 'tip-over';
-                const tipDesc = isDC ? dcLabel(p.dcType) : 'Over 1.5 Goals';
-                const cc = confClass(p.confidence);
+                const tipDesc  = isDC ? dcLabel(p.dcType) : 'Over 1.5 Goals';
+                const cc       = confClass(p.confidence);
 
                 return `
                 <tr class="${p.featured ? 'featured' : ''}" style="animation-delay:${i * 0.045}s">
@@ -798,9 +737,7 @@
                             <span class="team-name">${p.away}</span>
                         </div>
                     </td>
-                    <td class="hide-mob">
-                        <span class="league-tag">${p.league}</span>
-                    </td>
+                    <td class="hide-mob"><span class="league-tag">${p.league}</span></td>
                     <td><span class="time-box">${p.time}</span></td>
                     <td>
                         <div class="tip-wrap">
@@ -821,10 +758,22 @@
             }).join('');
         }
 
-        // Initialize on page load
-        document.addEventListener('DOMContentLoaded', () => {
-            fetchAndRenderPredictions();
-        });
+        // ── Fallback (hardcoded, shown only if API returns nothing today) ────────
+        const FALLBACK = [
+            { home:'Manchester City', away:'Liverpool',      league:'English Premier League', time:'17:30', tipType:'DC',   dcType:'1X', odds:'1.40', confidence:92, featured:true  },
+            { home:'Arsenal',         away:'Chelsea',         league:'English Premier League', time:'20:00', tipType:'DC',   dcType:'12', odds:'1.35', confidence:88, featured:false },
+            { home:'Real Madrid',     away:'Barcelona',       league:'La Liga',                time:'21:00', tipType:'OVER', dcType:null,  odds:'1.55', confidence:94, featured:false },
+            { home:'Bayern Munich',   away:'Dortmund',        league:'Bundesliga',             time:'18:30', tipType:'OVER', dcType:null,  odds:'1.45', confidence:91, featured:false },
+            { home:'Juventus',        away:'AC Milan',        league:'Serie A',                time:'19:45', tipType:'DC',   dcType:'X2', odds:'1.50', confidence:82, featured:false },
+            { home:'PSG',             away:'Marseille',       league:'Ligue 1',                time:'22:00', tipType:'DC',   dcType:'1X', odds:'1.30', confidence:89, featured:false },
+            { home:'Tottenham',       away:'Newcastle',       league:'English Premier League', time:'16:00', tipType:'OVER', dcType:null,  odds:'1.60', confidence:85, featured:false },
+            { home:'Inter Milan',     away:'Roma',            league:'Serie A',                time:'20:45', tipType:'DC',   dcType:'12', odds:'1.38', confidence:80, featured:false },
+            { home:'Atletico Madrid', away:'Sevilla',         league:'La Liga',                time:'18:15', tipType:'DC',   dcType:'1X', odds:'1.42', confidence:83, featured:false },
+            { home:'Leverkusen',      away:'Leipzig',         league:'Bundesliga',             time:'17:00', tipType:'OVER', dcType:null,  odds:'1.48', confidence:87, featured:false },
+        ];
+
+        // Boot
+        document.addEventListener('DOMContentLoaded', () => fetchAndRenderPredictions());
     </script>
 </body>
 </html>
