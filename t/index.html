@@ -252,6 +252,177 @@ footer .logo b{color:#fff}footer .mark{background:var(--red);box-shadow:none}
 @media(min-width:960px){.mbar{display:none!important}}
 @media(max-width:959px){body{padding-bottom:4.4rem}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* ══════════════════════════════════════════════════════════════
+   MOBILE REDESIGN — how-to steps (≤819px) & method factors (≤899px)
+   Desktop unchanged
+   ══════════════════════════════════════════════════════════════ */
+
+/* ───── Mobile how-to: timeline cards ───── */
+@media(max-width:819px){
+  .how{
+    counter-reset:h;
+    gap:0;
+    position:relative;
+    padding-left:.25rem;
+  }
+  .how li{
+    counter-increment:h;
+    display:grid;
+    grid-template-columns:3rem 1fr;
+    align-items:flex-start;
+    gap:.15rem 1rem;
+    padding:0 0 1.15rem 0;
+    position:relative;
+  }
+  .how li:last-child{padding-bottom:0}
+  .how li::after{
+    content:"";
+    position:absolute;
+    left:1.45rem;
+    top:3.1rem;
+    bottom:.15rem;
+    width:0;
+    border-left:2px dashed var(--line);
+    background:none;
+    height:auto;
+    right:auto;
+  }
+  .how li:last-child::after{display:none}
+  .how li::before{
+    content:counter(h);
+    grid-column:1;
+    grid-row:1 / span 2;
+    position:relative;
+    top:0;left:0;
+    width:3rem;
+    height:3rem;
+    border-radius:14px;
+    background:linear-gradient(135deg,var(--pitch),var(--pitch-l));
+    color:#fff;
+    font:800 1.15rem var(--disp);
+    display:grid;
+    place-items:center;
+    z-index:1;
+    transform:none;
+    transition:none;
+    box-shadow:
+      0 8px 20px -8px rgba(6,41,28,.5),
+      inset 0 0 0 1px rgba(255,255,255,.08),
+      0 0 0 6px var(--chalk);
+  }
+  .how li:hover::before{transform:none;background:linear-gradient(135deg,var(--red),var(--red-d))}
+  .how h3{
+    grid-column:2;
+    grid-row:1;
+    font-size:1.05rem;
+    font-family:var(--disp);
+    font-weight:800;
+    letter-spacing:-.02em;
+    color:var(--ink);
+    align-self:end;
+    padding-top:.15rem;
+  }
+  .how h3::before{
+    content:"Step " counter(h);
+    display:block;
+    font:800 .66rem var(--body);
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--pitch-l);
+    margin-bottom:.2rem;
+  }
+  .how p{
+    grid-column:2;
+    grid-row:2;
+    margin:.15rem 0 0;
+    font-size:.92rem;
+    line-height:1.5;
+    color:var(--mut);
+  }
+}
+
+/* ───── Mobile method: staggered checklist ───── */
+@media(max-width:899px){
+  .method{
+    gap:1.4rem;
+  }
+  .method > div:first-child{
+    background:var(--paper);
+    border-radius:1rem;
+    padding:1.25rem 1.3rem;
+    box-shadow:var(--sh-sm);
+    position:relative;
+    border-left:3px solid var(--pitch-l);
+  }
+  .method > div:first-child::before{
+    content:"\201C";
+    position:absolute;
+    top:-.35rem;
+    right:.9rem;
+    font:800 3rem var(--disp);
+    color:var(--pitch-l);
+    opacity:.15;
+    line-height:1;
+  }
+  .method p{
+    font-size:.95rem;
+    line-height:1.6;
+    margin-bottom:.85rem;
+    color:var(--ink2);
+  }
+  .method p:last-child{margin-bottom:0}
+
+  .factors{
+    counter-reset:f;
+    gap:.55rem;
+  }
+  .factors li{
+    counter-increment:f;
+    display:grid;
+    grid-template-columns:2.4rem 1fr;
+    align-items:center;
+    gap:.9rem;
+    padding:.85rem .95rem .85rem 3.1rem;
+    border-radius:.85rem;
+    background:var(--paper);
+    box-shadow:var(--sh-sm);
+    font-size:.9rem;
+    line-height:1.45;
+    color:var(--ink2);
+    transition:none;
+    position:relative;
+    overflow:hidden;
+  }
+  .factors li::before{
+    content:counter(f);
+    position:absolute;
+    left:0;
+    top:0;
+    bottom:0;
+    width:1.9rem;
+    display:grid;
+    place-items:center;
+    font:800 .82rem var(--disp);
+    color:var(--pitch-l);
+    background:linear-gradient(180deg,rgba(19,105,74,.08),rgba(19,105,74,.02));
+    border-right:1px dashed var(--line);
+  }
+  .factors li:hover{transform:none;box-shadow:var(--sh-sm)}
+  .factors svg{
+    grid-column:1;
+    width:2.4rem;
+    height:2.4rem;
+    padding:.55rem;
+    border-radius:12px;
+    background:linear-gradient(135deg,var(--chalk),#e6ede3);
+    color:var(--pitch-l);
+    font-size:1.1rem;
+    box-shadow:inset 0 0 0 1px var(--line);
+    margin-left:0;
+  }
+  #method .sec-h{margin-bottom:1.2rem}
+}
 </style>
 </head>
 <body>
