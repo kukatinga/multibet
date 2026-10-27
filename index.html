@@ -1,779 +1,539 @@
 <!DOCTYPE html>
-<html lang="en-US">
+<html lang="en-KE">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Double Chance & Over 1.5 Predictions | MULTIBET.co.ke</title>
-    
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,800;0,900;1,700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
-    
-    <style>
-        :root {
-            --red: #e8132a;
-            --gold: #f0b429;
-            --dark: #0d0d0f;
-            --surface: #141418;
-            --surface2: #1c1c22;
-            --border: rgba(255,255,255,0.07);
-            --text: #f0f0f5;
-            --muted: #6b6b7e;
-            --green: #22c55e;
-            --blue: #3b82f6;
-        }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        body {
-            font-family: 'Barlow', sans-serif;
-            background: var(--dark);
-            color: var(--text);
-            min-height: 100vh;
-        }
-
-        /* ── HEADER ──────────────────────────────── */
-        header {
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            background: rgba(13,13,15,0.92);
-            backdrop-filter: blur(16px);
-            border-bottom: 1px solid var(--border);
-        }
-
-        .header-inner {
-            max-width: 1100px;
-            margin: 0 auto;
-            padding: 0 20px;
-            height: 60px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .logo {
-            display: flex;
-            align-items: baseline;
-            gap: 1px;
-        }
-
-        .logo-multi {
-            font-family: 'Barlow Condensed', sans-serif;
-            font-weight: 900;
-            font-size: 1.6rem;
-            color: var(--red);
-            letter-spacing: -0.5px;
-        }
-
-        .logo-bet {
-            font-family: 'Barlow Condensed', sans-serif;
-            font-weight: 900;
-            font-size: 1.6rem;
-            color: var(--gold);
-            letter-spacing: -0.5px;
-        }
-
-        .logo-domain {
-            font-size: 0.7rem;
-            color: var(--muted);
-            font-weight: 500;
-            margin-left: 4px;
-            align-self: center;
-        }
-
-        .header-right {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
-
-        .date-pill {
-            background: var(--surface2);
-            border: 1px solid var(--border);
-            border-radius: 20px;
-            padding: 5px 14px;
-            font-size: 0.78rem;
-            color: var(--muted);
-            font-weight: 500;
-        }
-
-        .refresh-btn {
-            background: none;
-            border: 1px solid var(--border);
-            color: var(--muted);
-            width: 34px;
-            height: 34px;
-            border-radius: 8px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s;
-        }
-
-        .refresh-btn:hover {
-            border-color: var(--red);
-            color: var(--red);
-        }
-
-        .refresh-btn svg {
-            width: 16px;
-            height: 16px;
-            stroke: currentColor;
-            fill: none;
-            stroke-width: 2;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .refresh-btn.spinning svg {
-            animation: spin 0.6s linear infinite;
-        }
-
-        /* ── HERO BAND ────────────────────────────── */
-        .hero {
-            background: linear-gradient(135deg, #1a0508 0%, #0d0d0f 50%, #0a0c1a 100%);
-            border-bottom: 1px solid var(--border);
-            padding: 32px 20px 28px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .hero::before {
-            content: '';
-            position: absolute;
-            top: -60px; left: -60px;
-            width: 300px; height: 300px;
-            background: radial-gradient(circle, rgba(232,19,42,0.12) 0%, transparent 70%);
-            pointer-events: none;
-        }
-
-        .hero::after {
-            content: '';
-            position: absolute;
-            bottom: -40px; right: 10%;
-            width: 200px; height: 200px;
-            background: radial-gradient(circle, rgba(240,180,41,0.08) 0%, transparent 70%);
-            pointer-events: none;
-        }
-
-        .hero-inner {
-            max-width: 1100px;
-            margin: 0 auto;
-            position: relative;
-        }
-
-        .hero-eyebrow {
-            font-family: 'Barlow Condensed', sans-serif;
-            font-size: 0.7rem;
-            font-weight: 700;
-            letter-spacing: 0.2em;
-            text-transform: uppercase;
-            color: var(--red);
-            margin-bottom: 6px;
-        }
-
-        .hero-title {
-            font-family: 'Barlow Condensed', sans-serif;
-            font-size: clamp(2rem, 5vw, 3.2rem);
-            font-weight: 900;
-            line-height: 0.95;
-            letter-spacing: -1px;
-            text-transform: uppercase;
-            margin-bottom: 12px;
-        }
-
-        .hero-title em {
-            font-style: italic;
-            color: var(--gold);
-        }
-
-        .hero-sub {
-            font-size: 0.9rem;
-            color: var(--muted);
-            font-weight: 500;
-        }
-
-        /* ── STAT STRIP ───────────────────────────── */
-        .stat-strip {
-            background: var(--surface);
-            border-bottom: 1px solid var(--border);
-        }
-
-        .stat-strip-inner {
-            max-width: 1100px;
-            margin: 0 auto;
-            padding: 0 20px;
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-        }
-
-        .stat-item {
-            padding: 18px 0;
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-            border-right: 1px solid var(--border);
-            padding-right: 24px;
-            padding-left: 4px;
-        }
-
-        .stat-item:first-child { padding-left: 0; }
-        .stat-item:last-child { border-right: none; }
-
-        .stat-value {
-            font-family: 'Barlow Condensed', sans-serif;
-            font-size: 2rem;
-            font-weight: 900;
-            line-height: 1;
-            letter-spacing: -1px;
-        }
-
-        .stat-value.red { color: var(--red); }
-        .stat-value.green { color: var(--green); }
-        .stat-value.blue { color: var(--blue); }
-        .stat-value.gold { color: var(--gold); }
-
-        .stat-label {
-            font-size: 0.72rem;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            color: var(--muted);
-            font-weight: 600;
-        }
-
-        /* ── LEGEND ────────────────────────────────── */
-        .legend-bar {
-            max-width: 1100px;
-            margin: 0 auto;
-            padding: 14px 20px;
-            display: flex;
-            gap: 16px;
-            flex-wrap: wrap;
-            align-items: center;
-        }
-
-        .legend-label {
-            font-size: 0.7rem;
-            font-weight: 700;
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
-            color: var(--muted);
-            margin-right: 4px;
-        }
-
-        .chip {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 4px 10px;
-            border-radius: 4px;
-            font-size: 0.75rem;
-            font-weight: 700;
-            font-family: 'Barlow Condensed', sans-serif;
-            letter-spacing: 0.04em;
-        }
-
-        .chip-dc {
-            background: rgba(34,197,94,0.15);
-            border: 1px solid rgba(34,197,94,0.3);
-            color: var(--green);
-        }
-
-        .chip-over {
-            background: rgba(59,130,246,0.15);
-            border: 1px solid rgba(59,130,246,0.3);
-            color: var(--blue);
-        }
-
-        .chip-dot {
-            width: 6px; height: 6px;
-            border-radius: 50%;
-            background: currentColor;
-        }
-
-        /* ── TABLE ─────────────────────────────────── */
-        .table-wrap {
-            max-width: 1100px;
-            margin: 0 auto 32px;
-            padding: 0 20px;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        thead th {
-            padding: 10px 14px;
-            text-align: left;
-            font-size: 0.65rem;
-            font-weight: 700;
-            letter-spacing: 0.12em;
-            text-transform: uppercase;
-            color: var(--muted);
-            border-bottom: 1px solid var(--border);
-        }
-
-        tbody tr {
-            border-bottom: 1px solid var(--border);
-            transition: background 0.15s;
-            cursor: default;
-        }
-
-        tbody tr:hover {
-            background: rgba(255,255,255,0.025);
-        }
-
-        tbody tr.featured {
-            background: rgba(240,180,41,0.04);
-            border-left: 3px solid var(--gold);
-        }
-
-        tbody tr.featured:hover {
-            background: rgba(240,180,41,0.07);
-        }
-
-        tbody td {
-            padding: 14px 14px;
-            vertical-align: middle;
-        }
-
-        /* Teams cell */
-        .teams-cell {
-            display: flex;
-            flex-direction: column;
-            gap: 1px;
-        }
-
-        .team-name {
-            font-weight: 600;
-            font-size: 0.9rem;
-            color: var(--text);
-            white-space: nowrap;
-        }
-
-        .vs-sep {
-            font-size: 0.65rem;
-            color: var(--muted);
-            font-weight: 600;
-            letter-spacing: 0.05em;
-        }
-
-        /* League */
-        .league-tag {
-            font-size: 0.72rem;
-            font-weight: 600;
-            color: var(--muted);
-            white-space: nowrap;
-        }
-
-        /* Time */
-        .time-box {
-            font-family: 'Barlow Condensed', sans-serif;
-            font-size: 1rem;
-            font-weight: 700;
-            color: var(--text);
-            letter-spacing: 0.02em;
-        }
-
-        /* Tip badge */
-        .tip-wrap {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-
-        .tip-badge {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-family: 'Barlow Condensed', sans-serif;
-            font-size: 0.95rem;
-            font-weight: 800;
-            letter-spacing: 0.04em;
-            padding: 5px 14px;
-            border-radius: 4px;
-            width: fit-content;
-        }
-
-        .tip-dc {
-            background: rgba(34,197,94,0.15);
-            border: 1px solid rgba(34,197,94,0.35);
-            color: var(--green);
-        }
-
-        .tip-over {
-            background: rgba(59,130,246,0.15);
-            border: 1px solid rgba(59,130,246,0.35);
-            color: var(--blue);
-        }
-
-        .tip-desc {
-            font-size: 0.68rem;
-            color: var(--muted);
-            font-weight: 500;
-        }
-
-        /* Odds */
-        .odds-box {
-            font-family: 'Barlow Condensed', sans-serif;
-            font-size: 1.3rem;
-            font-weight: 900;
-            color: var(--gold);
-            letter-spacing: -0.5px;
-        }
-
-        /* Confidence */
-        .conf-wrap {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .conf-track {
-            width: 64px;
-            height: 4px;
-            background: rgba(255,255,255,0.08);
-            border-radius: 2px;
-            overflow: hidden;
-            flex-shrink: 0;
-        }
-
-        .conf-fill {
-            height: 100%;
-            border-radius: 2px;
-            transition: width 0.6s ease;
-        }
-
-        .conf-high { background: var(--green); }
-        .conf-mid  { background: var(--gold); }
-        .conf-low  { background: var(--red); }
-
-        .conf-pct {
-            font-family: 'Barlow Condensed', sans-serif;
-            font-size: 1rem;
-            font-weight: 700;
-        }
-
-        .conf-pct.high { color: var(--green); }
-        .conf-pct.mid  { color: var(--gold); }
-        .conf-pct.low  { color: var(--red); }
-
-        /* Star for featured */
-        .featured-star {
-            display: inline-block;
-            font-size: 0.65rem;
-            background: var(--gold);
-            color: #000;
-            padding: 1px 6px;
-            border-radius: 3px;
-            font-weight: 800;
-            font-family: 'Barlow Condensed', sans-serif;
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
-            margin-left: 6px;
-            vertical-align: middle;
-        }
-
-        /* ── DISCLAIMER ─────────────────────────────── */
-        .disclaimer {
-            text-align: center;
-            font-size: 0.72rem;
-            color: var(--muted);
-            padding: 0 20px 28px;
-        }
-
-        .disclaimer span {
-            display: inline-block;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            padding: 6px 16px;
-            border-radius: 20px;
-        }
-
-        /* ── MOBILE ─────────────────────────────────── */
-        @media (max-width: 700px) {
-            .stat-strip-inner { grid-template-columns: repeat(2, 1fr); }
-            .stat-item:nth-child(2) { border-right: none; }
-            .stat-item:nth-child(3) { border-right: 1px solid var(--border); }
-
-            thead th.hide-mob,
-            tbody td.hide-mob { display: none; }
-
-            .hero-title { font-size: 2rem; }
-            .odds-box { font-size: 1.1rem; }
-        }
-
-        /* ── ENTRY ANIMATION ────────────────────────── */
-        @keyframes fadeUp {
-            from { opacity: 0; transform: translateY(12px); }
-            to   { opacity: 1; transform: translateY(0); }
-        }
-
-        tbody tr {
-            animation: fadeUp 0.35s ease both;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SportPesa Mega Jackpot Predictions This Week | MULTIBET</title>
+<meta name="description" content="SportPesa Mega Jackpot predictions for all 17 games, midweek and Betika jackpot tips, and tracked results. Updated every week. 18+ only.">
+<link rel="canonical" href="https://multibet.co.ke/">
+<meta property="og:title" content="SportPesa Mega Jackpot Predictions This Week | MULTIBET"><meta property="og:type" content="website"><meta property="og:url" content="https://multibet.co.ke/">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"MULTIBET","url":"https://multibet.co.ke/"}</script>
+<style>
+:root{
+  --pitch:#0b4a33;--pitch-d:#06291c;--pitch-l:#13694a;--pitch-x:#0e3d2a;
+  --chalk:#f1f5ef;--paper:#fcfdfb;--ink:#101c15;--ink2:#263a2f;--mut:#5b6b60;--mut2:#8a958d;--line:#d6dfd3;--line2:#e7eee4;
+  --red:#f84643;--red-d:#d9302d;--win:#128048;--win-bg:#d5f0df;--miss:#8a958d;
+  --disp:'Bricolage Grotesque','Hanken Grotesk',system-ui,sans-serif;--body:'Hanken Grotesk',system-ui,sans-serif;
+  --sh-sm:0 1px 2px rgba(6,41,28,.05),0 1px 1px rgba(6,41,28,.03);
+  --sh-md:0 8px 24px -6px rgba(6,41,28,.14);
+  --sh-lg:0 30px 60px -20px rgba(0,0,0,.45);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:5.5rem}
+body{margin:0;background:var(--chalk);color:var(--ink);font:400 1rem/1.6 var(--body);-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+img{max-width:100%;display:block}
+svg.i{width:1em;height:1em;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+h1,h2,h3,h4{font-family:var(--disp);margin:0;line-height:1.08;letter-spacing:-.025em;color:var(--ink)}
+p{margin:0}
+:focus-visible{outline:3px solid var(--red);outline-offset:2px;border-radius:4px}
+.wrap{max-width:76rem;margin:0 auto;padding:0 1.1rem}
+@media(min-width:1024px){.wrap{padding:0 2rem}}
+
+/* ───── header ───── */
+.hd{position:sticky;top:0;z-index:60;background:rgba(252,253,251,.94);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+.hd .wrap{display:flex;align-items:center;gap:1.4rem;height:4.2rem}
+.logo{display:flex;align-items:center;gap:.65rem;margin-right:auto}
+.mark{width:2.5rem;height:2.5rem;border-radius:50% 50% 50% 8px;background:var(--pitch);color:#fff;display:grid;place-items:center;font:800 1.25rem var(--disp);box-shadow:inset 0 0 0 3px var(--pitch-l);transition:transform .3s}
+.logo:hover .mark{transform:rotate(-8deg) scale(1.06)}
+.logo b{font:800 1.5rem/1 var(--disp);letter-spacing:-.04em}.logo b i{font-style:normal;color:var(--red)}
+.nav{display:none;gap:.15rem;list-style:none;margin:0;padding:0}
+@media(min-width:900px){.nav{display:flex}}
+.nav a{display:block;padding:.5rem .85rem;border-radius:999px;font-weight:600;font-size:.94rem;color:#2b3a31;transition:background .15s,color .15s}
+.nav a:hover{background:#e6ede3}.nav a[aria-current=page]{background:var(--pitch);color:#fff}
+.hot{margin-left:.35rem;background:var(--red);color:#fff;border-radius:4px;padding:0 .3rem;font-size:.66rem;font-weight:800;letter-spacing:.03em}
+.srch{display:none;align-items:center;background:#e8eee5;border-radius:999px;padding:0 .4rem 0 .9rem;height:2.4rem;width:13rem;transition:all .15s}
+@media(min-width:1150px){.srch{display:flex}}
+.srch:focus-within{background:#fff;box-shadow:0 0 0 2px var(--pitch)}
+.srch input{flex:1;min-width:0;border:0;background:transparent;outline:0;font:500 .9rem var(--body);color:var(--ink)}
+.srch button{border:0;background:transparent;display:grid;place-items:center;width:1.8rem;height:1.8rem;cursor:pointer;color:var(--ink);font-size:1rem}
+.burger{border:0;background:#e8eee5;width:2.4rem;height:2.4rem;border-radius:50%;display:grid;place-items:center;font-size:1.15rem;cursor:pointer;color:var(--ink);transition:background .15s}
+.burger:hover{background:var(--pitch);color:#fff}
+@media(min-width:900px){.burger{display:none}}
+.burger .x{display:none}.burger[aria-expanded=true] .x{display:block}.burger[aria-expanded=true] .m{display:none}
+.mob{display:none;border-bottom:1px solid var(--line);background:var(--paper)}.mob.open{display:block}
+.mob ul{list-style:none;margin:0;padding:.3rem 1.1rem 1rem}
+.mob li a{display:block;padding:.85rem 0;border-bottom:1px solid var(--line);font-weight:600}.mob li a[aria-current=page]{color:var(--red)}
+.mob form{display:flex;gap:.5rem;padding:.9rem 1.1rem 0}
+.mob input{flex:1;min-width:0;height:2.6rem;border:1px solid var(--line);border-radius:999px;padding:0 1rem;font:500 .95rem var(--body)}
+.mob form button{border:0;border-radius:999px;background:var(--ink);color:#fff;padding:0 1.1rem;font:700 .9rem var(--body)}
+
+/* date strip */
+.dateline{border-bottom:1px solid var(--line);background:var(--paper)}
+.dateline .wrap{display:flex;justify-content:flex-end;align-items:center;height:2.1rem}
+.dateline span{font-size:.78rem;color:var(--mut);font-weight:600;letter-spacing:.02em;display:inline-flex;align-items:center;gap:.4rem}
+.dateline svg{width:.9em;height:.9em;color:var(--pitch-l)}
+@media(max-width:560px){.dateline span{font-size:.74rem}}
+
+/* ───── hero ───── */
+.hero{position:relative;background:var(--pitch);color:#fff;overflow:hidden;padding:2.4rem 0 5rem}
+.hero::before{content:"";position:absolute;inset:0;
+  background:
+    repeating-linear-gradient(90deg,rgba(255,255,255,.035) 0 6rem,transparent 6rem 12rem),
+    radial-gradient(60rem 30rem at 12% 110%,rgba(0,0,0,.4),transparent 70%),
+    radial-gradient(40rem 25rem at 90% -10%,rgba(20,128,72,.35),transparent 60%)}
+.lines{position:absolute;right:-8rem;top:50%;width:46rem;max-width:none;transform:translateY(-50%);opacity:.14;pointer-events:none}
+.hero .wrap{position:relative;display:grid;gap:2.4rem;align-items:center}
+@media(min-width:980px){.hero .wrap{grid-template-columns:1.1fr .9fr;gap:4rem}}
+.hero-eyebrow{display:inline-flex;align-items:center;gap:.55rem;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:.3rem .85rem;font:700 .72rem var(--body);letter-spacing:.12em;text-transform:uppercase;color:#a9e5c1;margin-bottom:1.2rem}
+.hero-eyebrow .dot{width:6px;height:6px;border-radius:50%;background:#7ee0a9;box-shadow:0 0 0 0 rgba(126,224,169,.6);animation:pulse 2s infinite}
+@keyframes pulse{70%{box-shadow:0 0 0 8px rgba(126,224,169,0)}100%{box-shadow:0 0 0 0 rgba(126,224,169,0)}}
+.hero h1{font-size:clamp(2.5rem,6.2vw,4.6rem);font-weight:800;letter-spacing:-.04em;line-height:.96;max-width:14ch;color:#fff}
+.hero h1 em{font-style:normal;position:relative;display:inline-block;color:#fff}
+.hero h1 em::after{content:"";position:absolute;left:0;right:0;bottom:.02em;height:.14em;background:#7ee0a9;z-index:-1;opacity:.7}
+.hero .lead{margin:1.3rem 0 1.5rem;font-size:1.1rem;color:#cfe2d6;max-width:34rem;line-height:1.55}
+.hero-cta{display:flex;flex-wrap:wrap;gap:.7rem;margin-bottom:1.5rem}
+.hero-btn{display:inline-flex;align-items:center;gap:.5rem;border-radius:999px;padding:.85rem 1.4rem;font:800 .94rem var(--body);border:0;cursor:pointer;transition:all .18s}
+.hero-btn.primary{background:var(--red);color:#fff;box-shadow:0 8px 22px -6px rgba(248,70,67,.55)}
+.hero-btn.primary:hover{background:var(--red-d);transform:translateY(-1px);box-shadow:0 12px 28px -6px rgba(217,48,45,.6)}
+.hero-btn.ghost{background:rgba(255,255,255,.06);color:#fff;border:1px solid rgba(255,255,255,.28)}
+.hero-btn.ghost:hover{background:rgba(255,255,255,.14);border-color:#fff}
+.trust{display:flex;flex-wrap:wrap;gap:.5rem 1.4rem;font-size:.86rem;color:#cfe2d6}
+.trust span{display:inline-flex;gap:.45rem;align-items:center}
+.trust svg{color:#7ee0a9;flex:none}
+
+/* pot / countdown ticket */
+.pot{position:relative;background:var(--paper);color:var(--ink);border-radius:1.1rem;box-shadow:var(--sh-lg);padding:1.5rem 1.5rem 1.35rem;transform:rotate(-.8deg);--cut:0}
+@media(max-width:979px){.pot{transform:none}}
+.pot::before,.pot::after{content:"";position:absolute;top:var(--cut,0);width:1.4rem;height:1.4rem;border-radius:50%;background:var(--pitch);margin-top:-.7rem;box-shadow:inset 0 0 0 3px rgba(0,0,0,.06)}
+.pot::before{left:-.7rem}.pot::after{right:-.7rem}
+.pot .kicker{font:800 .68rem var(--body);letter-spacing:.14em;text-transform:uppercase;color:var(--mut);display:flex;align-items:center;gap:.4rem;margin-bottom:.4rem}
+.pot .kicker::before{content:"●";color:var(--red);font-size:.5rem}
+.pot .amt{font:800 clamp(2rem,4.5vw,2.7rem)/1.05 var(--disp);letter-spacing:-.04em;color:var(--ink);margin-bottom:.25rem}
+.pot .sub{color:var(--mut);font-size:.9rem;font-weight:500}
+.pot .perf{border-top:2px dashed var(--line);margin:1.1rem -.3rem 1rem}
+.pot .cd-lbl{font:800 .68rem var(--body);letter-spacing:.14em;text-transform:uppercase;color:var(--mut);margin-bottom:.45rem;display:block}
+.cd{display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem;margin-bottom:1rem}
+.cd div{background:var(--chalk);border-radius:.6rem;padding:.55rem .25rem;text-align:center}
+.cd b{display:block;font:800 1.35rem var(--disp);color:var(--ink);line-height:1}
+.cd span{font-size:.6rem;color:var(--mut);letter-spacing:.1em;text-transform:uppercase;font-weight:700}
+.pot .btn-red{display:flex;align-items:center;justify-content:center;width:100%;height:3rem;border-radius:.7rem;background:var(--red);color:#fff;font:800 .98rem var(--body);box-shadow:0 4px 0 var(--red-d);transition:transform .1s,box-shadow .1s,background .15s}
+.pot .btn-red:hover{background:var(--red-d);transform:translateY(2px);box-shadow:0 2px 0 #a8241f}
+
+/* ───── sections ───── */
+.sec{padding:4rem 0 0}
+.sec-h{margin-bottom:1.6rem;max-width:44rem}
+.sec-h .kicker{display:inline-flex;align-items:center;gap:.5rem;font:800 .72rem var(--body);letter-spacing:.14em;text-transform:uppercase;color:var(--pitch-l);margin-bottom:.55rem}
+.sec-h .kicker::before{content:"";width:1.5rem;height:2px;background:var(--pitch-l)}
+.sec-h h2{font-size:clamp(1.7rem,3.6vw,2.4rem);font-weight:800;letter-spacing:-.03em}
+.sec-h p{margin-top:.5rem;color:var(--mut);font-size:.98rem;max-width:42rem}
+.sec-row{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:end;gap:.8rem 1.5rem}
+.more{font-weight:700;color:var(--pitch);border-bottom:2px solid currentColor;transition:color .15s,transform .15s;display:inline-block;white-space:nowrap}
+.more:hover{color:var(--red);transform:translateX(2px)}
+
+/* jackpot cards */
+.jgrid{display:grid;gap:1rem}
+@media(min-width:760px){.jgrid{grid-template-columns:repeat(3,1fr)}}
+.jc{background:var(--paper);border-radius:1rem;padding:1.4rem;display:flex;flex-direction:column;gap:.35rem;box-shadow:var(--sh-sm),0 10px 30px rgba(6,41,28,.06);transition:transform .2s,box-shadow .2s;position:relative;overflow:hidden}
+.jc::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--pitch-l);opacity:0;transition:opacity .2s}
+.jc:hover{transform:translateY(-3px);box-shadow:var(--sh-md)}
+.jc:hover::before{opacity:1}
+.jc .tag{align-self:flex-start;background:#e8eee5;color:var(--pitch-l);font:800 .68rem var(--body);letter-spacing:.08em;text-transform:uppercase;padding:.22rem .6rem;border-radius:999px}
+.jc h3{font-size:1.1rem;margin-top:.4rem;font-family:var(--disp);font-weight:800;color:var(--ink)}
+.jc .p{font:800 1.7rem/1.05 var(--disp);color:var(--pitch);letter-spacing:-.03em;margin-top:.35rem}
+.jc .m{color:var(--mut);font-size:.85rem;line-height:1.45}
+.jc .go{margin-top:.85rem;font-weight:700;font-size:.9rem;color:var(--red);display:flex;gap:.35rem;align-items:center}
+.jc .go::after{content:"→";transition:transform .15s}
+.jc:hover .go::after{transform:translateX(3px)}
+
+/* two-column predictions preview */
+.two{display:grid;gap:1.5rem}
+@media(min-width:960px){.two{grid-template-columns:1.6fr 1fr}}
+.card{background:var(--paper);border-radius:1rem;overflow:hidden;box-shadow:var(--sh-sm),0 10px 30px rgba(6,41,28,.06)}
+.tbl{width:100%;border-collapse:collapse;font-size:.94rem}
+.tbl th{background:#f3f7f1;text-align:left;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);padding:.85rem 1.1rem;font-weight:800}
+.tbl td{padding:.85rem 1.1rem;border-top:1px solid var(--line2);vertical-align:middle;color:var(--ink2)}
+.tbl tr:hover td{background:#f8fbf6}
+.tbl td.n{width:2.5rem;color:var(--pitch-l);font-weight:800;font-family:var(--disp);font-size:1rem}
+.tbl td.ko{color:var(--mut);font-size:.86rem;white-space:nowrap}
+.cardfoot{padding:1rem 1.1rem;background:#eef5ea;display:flex;flex-wrap:wrap;gap:.75rem;align-items:center;justify-content:space-between}
+.cardfoot p{margin:0;font-size:.88rem;color:var(--ink2);font-weight:600}
+.btn-dark{display:inline-flex;align-items:center;gap:.4rem;background:var(--ink);color:#fff;border-radius:999px;padding:.6rem 1.1rem;font:800 .85rem var(--body);transition:background .15s,transform .1s;white-space:nowrap}
+.btn-dark:hover{background:var(--pitch);transform:translateY(-1px)}
+.btn-dark::after{content:"→"}
+
+/* side pricing card */
+.side{align-self:start;background:linear-gradient(155deg,var(--pitch),var(--pitch-d));color:#fff;border-radius:1rem;padding:1.6rem;display:flex;flex-direction:column;gap:1rem;position:relative;overflow:hidden}
+.side::before{content:"";position:absolute;right:-3rem;top:-3rem;width:12rem;height:12rem;background:radial-gradient(circle,rgba(126,224,169,.15),transparent 65%);border-radius:50%}
+.side h3{font-size:1.2rem;color:#fff;position:relative}
+.side ul{list-style:none;padding:0;margin:0;display:grid;gap:.7rem;color:#cfe2d6;font-size:.92rem;position:relative}
+.side li{display:flex;gap:.6rem;line-height:1.5}
+.side li svg{color:#7ee0a9;margin-top:.2rem;flex:none}
+.side .price{display:flex;align-items:baseline;gap:.5rem;padding:.9rem 1rem;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:.7rem;position:relative}
+.side .price b{font:800 1.9rem/1 var(--disp);color:#fff;letter-spacing:-.03em}
+.side .price span{color:#cfe2d6;font-size:.84rem}
+.side .fine{font-size:.8rem;color:#a9c4b5;line-height:1.5;position:relative}
+
+/* record strip */
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:.85rem;margin-bottom:1.25rem}
+@media(min-width:760px){.stats{grid-template-columns:repeat(4,1fr)}}
+.stat{background:var(--paper);border-radius:1rem;padding:1.15rem 1.25rem;box-shadow:var(--sh-sm);position:relative;overflow:hidden;transition:transform .15s,box-shadow .15s}
+.stat::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,var(--pitch),var(--pitch-l))}
+.stat:hover{transform:translateY(-2px);box-shadow:var(--sh-md)}
+.stat b{display:block;font:800 1.9rem/1.05 var(--disp);letter-spacing:-.03em;color:var(--pitch);margin-bottom:.25rem}
+.stat span{color:var(--mut);font-size:.82rem;line-height:1.4;display:block}
+.score{font-weight:800;font-family:var(--disp)}
+.score.hi{color:var(--win)}.score.mid{color:#b45309}.score.lo{color:var(--red)}
+.badge{display:inline-flex;align-items:center;gap:.3rem;border-radius:999px;padding:.22rem .65rem;font-size:.74rem;font-weight:800}
+.badge.ok{background:var(--win-bg);color:#0c4a2a}.badge.no{background:#ebefe9;color:#4b5a50}
+.note{margin-top:1rem;font-size:.86rem;color:var(--mut);display:flex;gap:.55rem;line-height:1.55;max-width:52rem}
+.note svg{margin-top:.2rem;flex:none;color:var(--mut2)}
+.rlink{color:var(--pitch);font-weight:700;border-bottom:2px solid currentColor;transition:color .15s}
+.rlink:hover{color:var(--red)}
+.empty{padding:2rem 1rem;text-align:center;color:var(--mut);font-size:.92rem}
+
+/* hubs */
+.hubs{display:grid;gap:1rem}
+@media(min-width:640px){.hubs{grid-template-columns:repeat(2,1fr)}}
+@media(min-width:1000px){.hubs{grid-template-columns:repeat(3,1fr)}}
+.hub{background:var(--paper);border-radius:1rem;padding:1.3rem;display:flex;gap:1rem;transition:transform .18s,box-shadow .18s;box-shadow:var(--sh-sm)}
+.hub:hover{transform:translateY(-3px);box-shadow:var(--sh-md)}
+.hub .ic{width:2.6rem;height:2.6rem;border-radius:.7rem;background:#e8eee5;color:var(--pitch);display:grid;place-items:center;font-size:1.2rem;flex:none}
+.hub h3{font-size:1rem;font-family:var(--disp);font-weight:800;color:var(--ink)}
+.hub p{margin:.25rem 0 0;color:var(--mut);font-size:.86rem;line-height:1.5}
+
+/* articles */
+.arts{display:grid;gap:1.25rem}
+@media(min-width:700px){.arts{grid-template-columns:repeat(2,1fr)}}
+@media(min-width:1000px){.arts{grid-template-columns:repeat(4,1fr)}}
+.art{background:var(--paper);border-radius:1rem;overflow:hidden;transition:transform .2s,box-shadow .2s;display:flex;flex-direction:column;box-shadow:var(--sh-sm)}
+.art:hover{box-shadow:var(--sh-md);transform:translateY(-3px)}
+.art img{aspect-ratio:16/10;object-fit:cover;width:100%;background:var(--line2)}
+.art div{padding:1rem}
+.art span{font-size:.72rem;color:var(--red);font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+.art h3{font-size:.98rem;margin-top:.35rem;line-height:1.35;font-family:var(--disp);font-weight:700;color:var(--ink)}
+.art time{display:block;margin-top:.5rem;font-size:.78rem;color:var(--mut)}
+
+/* faq */
+.faq{max-width:52rem;border-top:2px solid var(--ink)}
+.faq details{border-bottom:1px solid var(--line);transition:background .15s}
+.faq details[open]{background:rgba(252,253,251,.5)}
+.faq summary{cursor:pointer;list-style:none;padding:1.15rem .25rem;font:700 1.05rem var(--disp);letter-spacing:-.01em;display:flex;justify-content:space-between;gap:1rem;align-items:center;color:var(--ink)}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{content:"+";color:var(--red);font-size:1.5rem;line-height:1;transition:transform .2s;font-weight:400;flex:none}
+.faq details[open] summary::after{transform:rotate(45deg)}
+.faq p{padding:0 .25rem 1.25rem;color:#2f3f35;max-width:42rem;line-height:1.6}
+.faq p a{color:var(--pitch);font-weight:700;border-bottom:2px solid currentColor}
+.faq p a:hover{color:var(--red)}
+
+/* footer */
+footer{background:var(--pitch-d);color:#fff;padding:3.4rem 0 1.6rem;margin-top:4.5rem;position:relative;overflow:hidden}
+footer::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--red),#7ee0a9,var(--red))}
+.fg{display:grid;gap:2rem;margin-bottom:2rem}
+@media(min-width:800px){.fg{grid-template-columns:1.4fr 1fr 1fr 1fr}}
+footer h4{font:800 .76rem var(--body);margin-bottom:.9rem;letter-spacing:.14em;text-transform:uppercase;color:#7ee0a9}
+footer ul{list-style:none;margin:0;padding:0;display:grid;gap:.5rem;font-size:.94rem;color:#a9c4b5}
+footer li a:hover{color:#fff;text-decoration:underline;text-underline-offset:3px}
+footer .about{color:#a9c4b5;font-size:.94rem;max-width:22rem;margin-top:.9rem;line-height:1.6}
+footer .fl{display:flex;align-items:center;gap:.7rem;font:800 1.4rem/1 var(--disp);letter-spacing:-.03em;color:#fff}
+footer .fl b{width:2.4rem;height:2.4rem;border-radius:.65rem;background:var(--red);display:grid;place-items:center;font-weight:800;box-shadow:3px 3px 0 #7ee0a9;color:#fff}
+.resp{border-top:1px solid #1f4b39;padding-top:1.3rem;font-size:.84rem;color:#a9c4b5;display:grid;gap:.5rem;line-height:1.55}
+.resp strong{color:#fff}
+
+.ribbon{position:fixed;left:.75rem;bottom:.75rem;z-index:90;background:#fff6d6;color:#6b4e00;border:1px dashed #d99a00;border-radius:.6rem;padding:.45rem .8rem;font-size:.78rem;font-weight:700;display:none;box-shadow:var(--sh-md)}
+.ribbon.on{display:block}
+
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+@media(max-width:560px){
+  .tbl th:nth-child(4),.tbl td:nth-child(4){display:none}
+  .tbl td,.tbl th{padding:.7rem .75rem}
+  .pot{padding:1.25rem}
+  .hero h1{max-width:12ch}
+  .sec{padding:3rem 0 0}
+  .sec-h h2{font-size:1.55rem}
+}
+</style>
 </head>
 <body>
 
-    <!-- HEADER -->
-    <header>
-        <div class="header-inner">
-            <div class="logo">
-                <span class="logo-multi">MULTI</span><span class="logo-bet">BET</span>
-                <span class="logo-domain">.co.ke</span>
-            </div>
-            <div class="header-right">
-                <span class="date-pill" id="dateLabel">—</span>
-                <button class="refresh-btn" onclick="fetchAndRenderPredictions(this)" title="Refresh">
-                    <svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
-                </button>
-            </div>
-        </div>
-    </header>
+<header class="hd" id="shNav">
+  <div class="wrap">
+    <a href="/" class="logo" aria-label="MULTIBET home"><span class="mark">M</span><b>MULTI<i>BET</i></b></a>
+    <nav aria-label="Main"><ul class="nav">
+      <li><a href="/" aria-current="page">Home</a></li>
+      <li><a href="/jackpot-predictions-this-week/">Jackpot Tips<span class="hot">HOT</span></a></li>
+      <li><a href="/category/football-predictions/">Predictions</a></li>
+      <li><a href="/category/reviews/">Reviews</a></li>
+      <li><a href="/category/news/">News</a></li>
+      <li><a href="/contact/">Contact</a></li>
+    </ul></nav>
+    <form class="srch" role="search" id="shSearch"><input type="search" name="q" placeholder="Search tips and news" aria-label="Search"><button type="submit" aria-label="Search"><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></button></form>
+    <button class="burger" id="shBurger" aria-expanded="false" aria-controls="shMob" aria-label="Menu">
+      <svg class="i m" viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></svg><svg class="i x" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
+    </button>
+  </div>
+  <div class="mob" id="shMob">
+    <form role="search" id="shSearchM"><input type="search" name="q" placeholder="Search tips and news" aria-label="Search"><button type="submit">Search</button></form>
+    <ul>
+      <li><a href="/" aria-current="page">Home</a></li>
+      <li><a href="/jackpot-predictions-this-week/">Jackpot Tips</a></li>
+      <li><a href="/category/football-predictions/">Predictions</a></li>
+      <li><a href="/category/reviews/">Reviews</a></li>
+      <li><a href="/category/news/">News</a></li>
+      <li><a href="/contact/">Contact</a></li>
+    </ul>
+  </div>
+</header>
 
-    <!-- HERO -->
-    <div class="hero">
-        <div class="hero-inner">
-            <div class="hero-eyebrow">Today's Top Tips</div>
-            <h1 class="hero-title">Double Chance<br>&amp; <em>Over 1.5</em> Picks</h1>
-            <p class="hero-sub">Safe markets · High accuracy · Updated daily</p>
-        </div>
+<div class="dateline">
+  <div class="wrap">
+    <span><svg class="i" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg><span id="shDate">&nbsp;</span></span>
+  </div>
+</div>
+
+<main id="top">
+<!-- ═══ HERO ═══ -->
+<section class="hero">
+  <svg class="lines" viewBox="0 0 400 400" fill="none" stroke="#fff" stroke-width="3" aria-hidden="true"><circle cx="200" cy="200" r="90"/><circle cx="200" cy="200" r="5" fill="#fff"/><path d="M200 0v400"/><path d="M0 120h70v160H0M400 120h-70v160h70"/></svg>
+  <div class="wrap">
+    <div>
+      <span class="hero-eyebrow"><span class="dot"></span>Updated every week · <span id="weekLbl">This week</span></span>
+      <h1>SportPesa Mega <em>Jackpot Predictions</em></h1>
+      <p class="lead">Game-by-game analysis for every match, tracked results you can check, and midweek and Betika jackpot tips, in one place.</p>
+      <div class="hero-cta">
+        <a class="hero-btn primary" href="/jackpot-predictions-this-week/"><svg class="i" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9z"/></svg>This week's predictions</a>
+        <a class="hero-btn ghost" href="/results/">See our results</a>
+      </div>
+      <div class="trust">
+        <span><svg class="i" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>Every result published, hits and misses</span>
+        <span><svg class="i" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>Pay with M-Pesa, picks by SMS</span>
+        <span><svg class="i" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>18+ only</span>
+      </div>
     </div>
+    <aside class="pot" aria-live="polite">
+      <div class="kicker" id="potName">SportPesa Mega Jackpot</div>
+      <div class="amt" id="potAmt">—</div>
+      <div class="sub" id="potSub">Loading fixtures…</div>
+      <div class="perf"></div>
+      <span class="cd-lbl">First kickoff in</span>
+      <div class="cd" id="cd" role="timer" aria-label="Time until the first kickoff">
+        <div><b data-u="d">--</b><span>Days</span></div><div><b data-u="h">--</b><span>Hours</span></div>
+        <div><b data-u="m">--</b><span>Mins</span></div><div><b data-u="s">--</b><span>Secs</span></div>
+      </div>
+      <a class="btn-red" href="/jackpot-predictions-this-week/">Get this week's picks</a>
+    </aside>
+  </div>
+</section>
 
-    <!-- STAT STRIP -->
-    <div class="stat-strip">
-        <div class="stat-strip-inner">
-            <div class="stat-item">
-                <span class="stat-value red" id="statTotal">—</span>
-                <span class="stat-label">Today's Tips</span>
-            </div>
-            <div class="stat-item">
-                <span class="stat-value green" id="statDC">—</span>
-                <span class="stat-label">Double Chance</span>
-            </div>
-            <div class="stat-item">
-                <span class="stat-value blue" id="statOver">—</span>
-                <span class="stat-label">Over 1.5</span>
-            </div>
-            <div class="stat-item">
-                <span class="stat-value gold" id="statBestOdds">—</span>
-                <span class="stat-label">Best Odds</span>
-            </div>
-        </div>
+<!-- ═══ JACKPOTS ═══ -->
+<section class="sec" id="jackpots">
+  <div class="wrap">
+    <div class="sec-h"><span class="kicker">This week</span><h2>Jackpots we cover</h2><p>Game counts, bonus lines and first kickoff for each jackpot.</p></div>
+    <div class="jgrid" id="jgrid"></div>
+  </div>
+</section>
+
+<!-- ═══ PREDICTIONS PREVIEW ═══ -->
+<section class="sec" id="predictions">
+  <div class="wrap">
+    <div class="sec-row sec-h" style="max-width:none">
+      <div style="max-width:44rem"><span class="kicker">The card</span><h2>SportPesa Mega Jackpot fixtures this week</h2><p>This week's games. The full analysis and our predictions are on the prediction page.</p></div>
+      <a class="more" href="/jackpot-predictions-this-week/">Open the full page</a>
     </div>
-
-    <!-- LEGEND -->
-    <div class="legend-bar">
-        <span class="legend-label">Guide:</span>
-        <span class="chip chip-dc"><span class="chip-dot"></span>1X — Home or Draw</span>
-        <span class="chip chip-dc"><span class="chip-dot"></span>12 — Home or Away</span>
-        <span class="chip chip-dc"><span class="chip-dot"></span>X2 — Draw or Away</span>
-        <span class="chip chip-over"><span class="chip-dot"></span>O1.5 — Over 1.5 Goals</span>
+    <div class="two">
+      <div class="card">
+        <table class="tbl"><thead><tr><th>#</th><th>Match</th><th>Kickoff</th></tr></thead><tbody id="prevBody"></tbody></table>
+        <div class="cardfoot"><p id="prevMore">More games on the prediction page</p><a class="btn-dark" href="/jackpot-predictions-this-week/">View all predictions</a></div>
+      </div>
+      <aside class="side">
+        <h3>Get our predictions</h3>
+        <div class="price"><b>KES 99</b><span>per jackpot · M-Pesa</span></div>
+        <ul>
+          <li><svg class="i" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>Open the prediction page</li>
+          <li><svg class="i" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>Enter your Safaricom number</li>
+          <li><svg class="i" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>Approve the M-Pesa prompt on your phone</li>
+          <li><svg class="i" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>Get predictions by SMS</li>
+        </ul>
+        <p class="fine">Tips are analysis, not a guarantee. No one can promise a jackpot win. 18+ only.</p>
+      </aside>
     </div>
+  </div>
+</section>
 
-    <!-- TABLE -->
-    <div class="table-wrap">
-        <table>
-            <thead>
-                <tr>
-                    <th>Match</th>
-                    <th class="hide-mob">League</th>
-                    <th>Time</th>
-                    <th>Tip</th>
-                    <th>Odds</th>
-                    <th>Conf.</th>
-                </tr>
-            </thead>
-            <tbody id="predictionsBody"></tbody>
-        </table>
+<!-- ═══ RESULTS ═══ -->
+<section class="sec" id="results">
+  <div class="wrap">
+    <div class="sec-row sec-h" style="max-width:none">
+      <div style="max-width:44rem"><span class="kicker">Our record</span><h2>Latest results</h2><p>How our predictions did against the actual outcomes. Wins and misses both stay on the record.</p></div>
+      <a class="more" href="/results/">All results</a>
     </div>
+    <div class="stats" id="stats"></div>
+    <div class="card"><table class="tbl"><thead><tr><th>Draw date</th><th>Jackpot</th><th>Our score</th><th>Bonus</th></tr></thead><tbody id="resBody"></tbody></table></div>
+    <p class="note"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>Score is the number of games we predicted correctly. Bonus line is 12 for the Mega Jackpot, 10 for the SportPesa Midweek and 12 for the Betika Midweek. <a class="rlink" href="/accuracy/">How we count</a></p>
+  </div>
+</section>
 
-    <!-- DISCLAIMER -->
-    <div class="disclaimer">
-        <span>18+ Only &nbsp;·&nbsp; Play Responsibly &nbsp;·&nbsp; Double Chance &amp; Over 1.5 are lower-risk markets</span>
+<!-- ═══ HUBS ═══ -->
+<section class="sec" id="hubs">
+  <div class="wrap">
+    <div class="sec-h"><span class="kicker">Explore</span><h2>Everything on MULTIBET</h2><p>Everything on the site, in a few clicks.</p></div>
+    <div class="hubs">
+      <a class="hub" href="/category/mega-jackpot-predictions/"><span class="ic"><svg class="i" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9z"/></svg></span><div><h3>Mega Jackpot Predictions</h3><p>This week, 17 games and past predictions.</p></div></a>
+      <a class="hub" href="/midweek-jackpot-predictions/"><span class="ic"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span><div><h3>Midweek Jackpot</h3><p>SportPesa and Betika midweek tips.</p></div></a>
+      <a class="hub" href="/results/"><span class="ic"><svg class="i" viewBox="0 0 24 24"><path d="M3 3v18h18M7 14l4-4 3 3 5-6"/></svg></span><div><h3>Results</h3><p>Official outcomes and our record.</p></div></a>
+      <a class="hub" href="/category/football-predictions/"><span class="ic"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8l3 2-1 4h-4l-1-4z"/></svg></span><div><h3>Football Predictions</h3><p>Daily tips and match previews.</p></div></a>
+      <a class="hub" href="/category/reviews/"><span class="ic"><svg class="i" viewBox="0 0 24 24"><path d="M12 2l3 7 7 .6-5.3 4.7 1.6 7.2L12 17.8 5.7 21.5l1.6-7.2L2 9.6 9 9z"/></svg></span><div><h3>Bookmaker Reviews</h3><p>Betting sites and offers in Kenya.</p></div></a>
+      <a class="hub" href="/category/news/"><span class="ic"><svg class="i" viewBox="0 0 24 24"><path d="M4 4h13v16H6a2 2 0 0 1-2-2zM17 8h3v10a2 2 0 0 1-2 2M8 8h5M8 12h5M8 16h5"/></svg></span><div><h3>News</h3><p>Jackpot winners and betting news.</p></div></a>
     </div>
+  </div>
+</section>
 
-    <script>
-        const API_KEY = '123';
-        const BASE_URL = 'https://www.thesportsdb.com/api/v1/json';
+<!-- ═══ LATEST ARTICLES ═══ -->
+<section class="sec" id="news">
+  <div class="wrap">
+    <div class="sec-row sec-h" style="max-width:none">
+      <div style="max-width:44rem"><span class="kicker">Reading</span><h2>Latest from MULTIBET</h2></div>
+      <a class="more" href="/category/news/">More news</a>
+    </div>
+    <div class="arts">
+      <a class="art" href="/when-bundles-run-out-the-game-doesnt-stop-sportpesa-kenyas-ussd-casino-is-changing-how-kenyans-play/"><img src="https://i.imgur.com/2H9nodm.jpg" alt="" loading="lazy"><div><span>Reviews</span><h3>When bundles run out, the game doesn't stop: SportPesa Kenya's USSD Casino</h3><time datetime="2025-12-18">Dec 18, 2025</time></div></a>
+      <a class="art" href="/every-goal-can-pay-how-sportpesa-kenyas-goal-goal-and-1x2-markets-are-putting-instant-wins-in-fans-hands/"><img src="https://i.imgur.com/wHOPtRW.jpg" alt="" loading="lazy"><div><span>News</span><h3>Every goal can pay: Goal Goal and 1X2 markets</h3><time datetime="2025-12-18">Dec 18, 2025</time></div></a>
+      <a class="art" href="/mashemeji-lit-the-fuse-now-the-sportpesa-league-is-the-weekend-kenya-cant-ignore/"><img src="https://i.imgur.com/PqIWVIz.jpg" alt="" loading="lazy"><div><span>News</span><h3>Mashemeji lit the fuse: the SportPesa League is the weekend Kenya can't ignore</h3><time datetime="2025-12-18">Dec 18, 2025</time></div></a>
+      <a class="art" href="/from-99-bob-to-ksh-20-7m-nairobi-tailor-becomes-newest-sportpesa-mega-jackpot-winner/"><img src="https://i.imgur.com/FlRylsY.jpg" alt="" loading="lazy"><div><span>News</span><h3>From 99 bob to KSh 20.7M: Nairobi tailor becomes newest Mega Jackpot winner</h3><time datetime="2025-12-18">Dec 18, 2025</time></div></a>
+    </div>
+  </div>
+</section>
 
-        // League IDs to query
-        const LEAGUE_IDS = [4328, 4335, 4332, 4331, 4334]; // EPL, La Liga, Serie A, Bundesliga, Ligue 1
+<!-- ═══ FAQ ═══ -->
+<section class="sec" id="faq">
+  <div class="wrap">
+    <div class="sec-h"><span class="kicker">Questions</span><h2>Mega Jackpot predictions: common questions</h2></div>
+    <div class="faq">
+      <details><summary>How accurate are your SportPesa Mega Jackpot predictions?</summary><p>We publish every result next to our prediction, so you can judge for yourself. See the <a href="/results/">results page</a> for the record, including the weeks we missed. No tipster can promise a win.</p></details>
+      <details><summary>Where can I see this week's 17-game predictions?</summary><p>On the <a href="/jackpot-predictions-this-week/">this-week prediction page</a>. It carries the full analysis, and the paid picks unlock there with M-Pesa.</p></details>
+      <details><summary>How do I pay for tips?</summary><p>Open the prediction page, enter your M-Pesa number and approve the prompt on your phone. The picks unlock as soon as the payment is confirmed.</p></details>
+      <details><summary>Do you also cover midweek and Betika jackpots?</summary><p>Yes. See the <a href="/midweek-jackpot-predictions/">midweek jackpot hub</a> for SportPesa and Betika midweek predictions.</p></details>
+    </div>
+  </div>
+</section>
+</main>
 
-        // Get today's date in Kenyan time (UTC+3) as YYYY-MM-DD
-        function getKenyanToday() {
-            const now = new Date();
-            // Offset local time to UTC, then add 3 hours for EAT
-            const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
-            const eat = new Date(utc + (3 * 3600000));
-            const y = eat.getFullYear();
-            const m = String(eat.getMonth() + 1).padStart(2, '0');
-            const d = String(eat.getDate()).padStart(2, '0');
-            return `${y}-${m}-${d}`;
-        }
+<footer>
+  <div class="wrap">
+    <div class="fg">
+      <div><div class="fl"><b>M</b>MULTIBET</div><p class="about">Your home of SportPesa Mega Jackpot predictions, results and betting news in Kenya.</p></div>
+      <div><h4>Jackpots</h4><ul><li><a href="/jackpot-predictions-this-week/">This week's predictions</a></li><li><a href="/midweek-jackpot-predictions/">Midweek jackpot</a></li><li><a href="/results/">Results</a></li><li><a href="/accuracy/">Accuracy</a></li></ul></div>
+      <div><h4>Site</h4><ul><li><a href="/category/football-predictions/">Football predictions</a></li><li><a href="/category/reviews/">Reviews</a></li><li><a href="/category/news/">News</a></li><li><a href="/sitemap/">Sitemap</a></li></ul></div>
+      <div><h4>Legal</h4><ul><li><a href="/about/">About</a></li><li><a href="/contact/">Contact</a></li><li><a href="/terms/">Terms of Service</a></li><li><a href="/privacy/">Privacy Policy</a></li><li><a href="/responsible-gaming/">Responsible Gaming</a></li></ul></div>
+    </div>
+    <div class="resp">
+      <p><strong>18+ only. Bet responsibly.</strong> Gambling can be addictive. Set limits and never chase losses.</p>
+      <p>MULTIBET is an information and tips service. We are not a bookmaker and cannot guarantee any outcome. Sponsored and guest content is labelled.</p>
+      <p>© <span id="yr">2026</span> MULTIBET</p>
+    </div>
+  </div>
+</footer>
+<div class="ribbon" id="ribbon">Preview: showing sample data (no endpoints connected yet)</div>
 
-        function getDateLabel() {
-            const days   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-            const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-            const now = new Date();
-            const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
-            const eat = new Date(utc + (3 * 3600000));
-            return days[eat.getDay()] + ', ' + months[eat.getMonth()] + ' ' + eat.getDate();
-        }
+<script>
+/* ───────── header behaviour ───────── */
+(function(){
+  try{document.getElementById('shDate').textContent=new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric',timeZone:'Africa/Nairobi'});}catch(e){}
+  var b=document.getElementById('shBurger'),m=document.getElementById('shMob');
+  b.addEventListener('click',function(){var o=m.classList.toggle('open');b.setAttribute('aria-expanded',o);});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape'&&m.classList.contains('open')){m.classList.remove('open');b.setAttribute('aria-expanded','false');b.focus();}});
+  ['shSearch','shSearchM'].forEach(function(id){var f=document.getElementById(id);f.addEventListener('submit',function(e){e.preventDefault();var q=f.q.value.trim();if(q)location.href='https://www.google.com/search?q='+encodeURIComponent('site:multibet.co.ke '+q);});});
+  /* position ticket notches on the dashed rule */
+  var tk=document.querySelector('.pot'),pf=tk&&tk.querySelector('.perf');
+  if(tk&&pf){function notch(){tk.style.setProperty('--cut',(pf.offsetTop+1)+'px');}notch();window.addEventListener('resize',notch);window.addEventListener('load',notch);if(window.ResizeObserver)new ResizeObserver(notch).observe(tk);}
+})();
 
-        function determineTip() {
-            const isDC    = Math.random() > 0.4;
-            const dcTypes = ['1X', '12', 'X2'];
-            if (isDC) {
-                return {
-                    type:   'DC',
-                    dcType: dcTypes[Math.floor(Math.random() * dcTypes.length)],
-                    odds:   (Math.random() * 0.4 + 1.25).toFixed(2)
-                };
-            }
-            return { type: 'OVER', dcType: null, odds: (Math.random() * 0.35 + 1.35).toFixed(2) };
-        }
+/* ───────── data layer (unchanged endpoints & shapes) ───────── */
+var API_BASE='https://www.namex.co.ke/api/';
+var ALLOW_SAMPLE_FALLBACK=true;
+var TYPES=[
+  {slug:'sportpesa_mega',tag:'Mega',url:'/jackpot-predictions-this-week/',bonus:12},
+  {slug:'sportpesa_midweek',tag:'Midweek',url:'/midweek-jackpot-predictions/',bonus:10},
+  {slug:'betika',tag:'Betika',url:'/midweek-jackpot-predictions/',bonus:12}
+];
+function sampleFx(slug,label,n,days){var base=Date.now()+days*864e5,f=[];for(var i=1;i<=n;i++){var t=new Date(base+i*36e5);
+  f.push({game_number:i,home:'Team '+(2*i-1),away:'Team '+(2*i),kickoff:t.toISOString(),kickoff_display:t.toLocaleString('en-GB',{weekday:'long',hour:'2-digit',minute:'2-digit',timeZone:'Africa/Nairobi'}),_iso:true});}
+  return {success:true,type:{slug:slug,label:label,game_count:n,updated_at:''},fixtures:f};}
+var SAMPLE_FX={sportpesa_mega:sampleFx('sportpesa_mega','SportPesa Mega Jackpot',17,2),sportpesa_midweek:sampleFx('sportpesa_midweek','SportPesa Midweek Jackpot',13,5),betika:sampleFx('betika','Betika Midweek Jackpot',15,3)};
+function sampleRes(slug,label,total,thr,hist){return {success:true,type:slug,label:label,threshold:thr,total_games:total,latest:{draw_date:hist[0][0],total:total,correct:hist[0][1],bonus_threshold:thr,bonus_reached:hist[0][1]>=thr},
+  rolling:{weeks:hist.length,avg_correct:11.4,bonus_weeks:3,banker_hit:31,banker_total:40,banker_rate:78,upset_hit:14,upset_total:24,upset_rate:58},
+  history:hist.map(function(x){return{draw_date:x[0],correct:x[1],total:total,bonus_reached:x[1]>=thr};})};}
+var SAMPLE_RES={sportpesa_mega:sampleRes('sportpesa_mega','SportPesa Mega Jackpot',17,12,[['2026-10-18',13],['2026-10-11',10],['2026-10-04',12]]),
+  sportpesa_midweek:sampleRes('sportpesa_midweek','SportPesa Midweek Jackpot',13,10,[['2026-10-14',11],['2026-10-07',8]]),
+  betika:sampleRes('betika','Betika Midweek Jackpot',15,12,[['2026-10-15',12],['2026-10-08',9]])};
 
-        function getConfidence(leagueName) {
-            const base = leagueName?.toLowerCase().includes('premier') ? 88
-                       : leagueName?.toLowerCase().includes('liga')    ? 85
-                       : leagueName?.toLowerCase().includes('serie')   ? 82
-                       : 80;
-            return Math.min(96, base + Math.floor(Math.random() * 10));
-        }
+var usedSample=false;
+function getJSON(url,sample){
+  return fetch(url,{headers:{Accept:'application/json'}}).then(function(r){if(!r.ok)throw 0;return r.json();})
+    .then(function(j){if(!j||j.success!==true)throw 0;return j;})
+    .catch(function(){if(ALLOW_SAMPLE_FALLBACK){usedSample=true;return sample;}return null;});
+}
+function el(t,c,x){var e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e;}
+function safeUrl(u){return typeof u==='string'&&u.charAt(0)==='/'&&u.charAt(1)!=='/'?u:'#';}
+function kickoffMs(f){if(f._iso)return new Date(f.kickoff).getTime();return new Date(String(f.kickoff).replace(' ','T')+'+03:00').getTime();}
+function fmtDate(s){var d=new Date(s+'T12:00:00+03:00');return isNaN(d)?s:d.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric',timeZone:'Africa/Nairobi'});}
+function firstKick(fx){var m=Infinity;(fx||[]).forEach(function(f){var t=kickoffMs(f);if(t<m)m=t;});return m===Infinity?null:m;}
+function fmtPot(t){var p=t&&(t.pot!=null?t.pot:t.pot_amount!=null?t.pot_amount:t.amount);if(p==null||p==='')return null;return typeof p==='number'?'KES '+new Intl.NumberFormat('en-KE').format(p):String(p);}
 
-        // Format HH:MM from API time string (may be "17:30:00" or "17:30" or null)
-        function fmtTime(raw) {
-            if (!raw) return '—';
-            return raw.substring(0, 5);
-        }
+var jobs=[];TYPES.forEach(function(t){jobs.push(getJSON(API_BASE+'jackpots.php?type='+t.slug,SAMPLE_FX[t.slug]));});
+TYPES.forEach(function(t){jobs.push(getJSON(API_BASE+'results.php?type='+t.slug+'&limit=8',SAMPLE_RES[t.slug]));});
 
-        async function fetchAndRenderPredictions(btn = null) {
-            if (btn) btn.classList.add('spinning');
+Promise.all(jobs).then(function(r){
+  var fx=r.slice(0,3),rs=r.slice(3,6);
+  if(usedSample)document.getElementById('ribbon').classList.add('on');
+  var yr=document.getElementById('yr');if(yr)yr.textContent=new Date().getFullYear();
 
-            const tbody = document.getElementById('predictionsBody');
-            tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--muted);">Fetching today's matches…</td></tr>`;
+  /* hero = Mega Jackpot */
+  var mega=fx[0],megaRes=rs[0],hero=TYPES[0];
+  if(mega){
+    var ty=mega.type,pot=fmtPot(ty),thr=(megaRes&&megaRes.threshold)||hero.bonus;
+    document.getElementById('potName').textContent=ty.label;
+    document.getElementById('potAmt').textContent=pot||(ty.game_count+' games');
+    document.getElementById('potSub').textContent=(pot?ty.game_count+' games · ':'')+'Bonus from '+thr+' correct';
+    var gc=document.querySelectorAll('.gc');for(var i=0;i<gc.length;i++)gc[i].textContent=ty.game_count;
+    var t0=firstKick(mega.fixtures),cd=document.getElementById('cd');
+    if(t0){(function tick(){var t=Math.max(0,t0-Date.now()),p=function(n){return String(n).padStart(2,'0');};
+      var v={d:Math.floor(t/864e5),h:Math.floor(t%864e5/36e5),m:Math.floor(t%36e5/6e4),s:Math.floor(t%6e4/1e3)};
+      for(var k in v)cd.querySelector('[data-u="'+k+'"]').textContent=p(v[k]);if(t>0)setTimeout(tick,1000);})();}
+    else{cd.style.display='none';var lbl=document.querySelector('.cd-lbl');if(lbl)lbl.style.display='none';}
+  }else{document.getElementById('potSub').textContent='Fixtures unavailable right now';document.getElementById('cd').style.display='none';}
 
-            const today = getKenyanToday();
-            document.getElementById('dateLabel').textContent = getDateLabel();
+  /* jackpot cards */
+  var g=document.getElementById('jgrid');
+  TYPES.forEach(function(t,i){var d=fx[i],a=el('a','jc');a.href=safeUrl(t.url);
+    a.appendChild(el('span','tag',t.tag));
+    if(!d){a.appendChild(el('h3',null,t.tag+' Jackpot'));a.appendChild(el('div','m','Unavailable right now'));g.appendChild(a);return;}
+    var pot=fmtPot(d.type),k=firstKick(d.fixtures),thr=(rs[i]&&rs[i].threshold)||t.bonus;
+    a.appendChild(el('h3',null,d.type.label));
+    a.appendChild(el('div','p',pot||(d.type.game_count+' games')));
+    a.appendChild(el('div','m',(pot?d.type.game_count+' games · ':'')+'Bonus from '+thr+' correct'));
+    a.appendChild(el('div','m',d.fixtures.length?'First kickoff '+(d.fixtures[0].kickoff_display||''):'Fixtures not published yet'));
+    a.appendChild(el('div','go','View predictions'));g.appendChild(a);});
 
-            try {
-                // eventsday.php returns only matches on the specified date
-                const promises = LEAGUE_IDS.map(id =>
-                    fetch(`${BASE_URL}/${API_KEY}/eventsday.php?l=${id}&d=${today}`)
-                        .then(r => r.json())
-                        .catch(() => ({ events: [] }))
-                );
+  /* fixtures preview (Mega) */
+  var pb=document.getElementById('prevBody'),fl=mega?mega.fixtures:[];
+  if(!fl.length){var tr=el('tr'),td=el('td','empty','Fixtures for this jackpot haven\'t been published yet. Check back soon.');td.colSpan=3;tr.appendChild(td);pb.appendChild(tr);document.getElementById('prevMore').textContent='Fixtures are usually published a few days before the jackpot';}
+  else{fl.slice(0,6).forEach(function(f){var tr=el('tr');tr.appendChild(el('td','n',f.game_number));tr.appendChild(el('td',null,f.home+' vs '+f.away));tr.appendChild(el('td','ko',f.kickoff_display||''));pb.appendChild(tr);});
+    var more=fl.length-6;document.getElementById('prevMore').textContent=more>0?'+ '+more+' more games and full analysis on the prediction page':'Full analysis on the prediction page';}
 
-                const results  = await Promise.all(promises);
-                let allEvents  = [];
-                results.forEach(r => { if (r.events) allEvents = allEvents.concat(r.events); });
+  /* record (Mega rolling) */
+  var sg=document.getElementById('stats'),ro=megaRes&&megaRes.rolling;
+  if(ro){[[Number(ro.avg_correct).toFixed(1)+' / '+megaRes.total_games,'Average games correct, last '+ro.weeks+' weeks'],
+          [ro.bonus_weeks+' of '+ro.weeks,'Weeks the bonus line was reached'],
+          [ro.banker_rate+'%','Banker picks correct ('+ro.banker_hit+'/'+ro.banker_total+')'],
+          [ro.upset_rate+'%','Upset picks correct ('+ro.upset_hit+'/'+ro.upset_total+')']]
+    .forEach(function(x){var s=el('div','stat');s.appendChild(el('b',null,x[0]));s.appendChild(el('span',null,x[1]));sg.appendChild(s);});}
+  else sg.style.display='none';
 
-                if (allEvents.length === 0) throw new Error('No matches today');
+  /* latest results across all three jackpots, newest first */
+  var rows=[];rs.forEach(function(x){if(!x||!x.history)return;x.history.forEach(function(h){rows.push({d:h.draw_date,label:x.label,c:h.correct,t:h.total,ok:h.bonus_reached});});});
+  rows.sort(function(a,b){return a.d<b.d?1:a.d>b.d?-1:0;});
+  var rb=document.getElementById('resBody');
+  if(!rows.length){var tr=el('tr'),td=el('td','empty','No results published yet.');td.colSpan=4;tr.appendChild(td);rb.appendChild(tr);}
+  rows.slice(0,6).forEach(function(r){var tr=el('tr');tr.appendChild(el('td',null,fmtDate(r.d)));tr.appendChild(el('td',null,r.label));
+    var p=r.c/r.t;tr.appendChild(el('td','score '+(p>=.75?'hi':p>=.55?'mid':'lo'),r.c+' / '+r.t));
+    var td=el('td');td.appendChild(el('span','badge '+(r.ok?'ok':'no'),r.ok?'✓ Bonus reached':'Below bonus line'));tr.appendChild(td);rb.appendChild(tr);});
+});
+document.getElementById('yr').textContent=new Date().getFullYear();
+</script>
 
-                // Shuffle and take up to 10
-                const shuffled = allEvents.sort(() => Math.random() - 0.5).slice(0, 10);
-
-                const predictions = shuffled.map((m, i) => {
-                    const tip = determineTip();
-                    return {
-                        home:       m.strHomeTeam,
-                        away:       m.strAwayTeam,
-                        league:     m.strLeague || '',
-                        time:       fmtTime(m.strTime),
-                        tipType:    tip.type,
-                        dcType:     tip.dcType,
-                        odds:       tip.odds,
-                        confidence: getConfidence(m.strLeague),
-                        featured:   i === 0
-                    };
-                });
-
-                renderTable(predictions);
-
-            } catch (err) {
-                console.warn('Live fetch failed, using fallback:', err.message);
-                renderTable(FALLBACK);
-            }
-
-            if (btn) btn.classList.remove('spinning');
-        }
-
-        // ── Shared render ────────────────────────────────────────────────────────
-        function confClass(n) { return n >= 88 ? 'high' : n >= 80 ? 'mid' : 'low'; }
-        function dcLabel(t)   { return { '1X':'Home or Draw', '12':'Home or Away', 'X2':'Draw or Away' }[t] || t; }
-
-        function renderTable(predictions) {
-            const dcCount  = predictions.filter(p => p.tipType === 'DC').length;
-            const overCount = predictions.filter(p => p.tipType === 'OVER').length;
-            const bestOdds = Math.max(...predictions.map(p => parseFloat(p.odds))).toFixed(2);
-
-            document.getElementById('statTotal').textContent    = predictions.length;
-            document.getElementById('statDC').textContent       = dcCount;
-            document.getElementById('statOver').textContent     = overCount;
-            document.getElementById('statBestOdds').textContent = bestOdds;
-
-            document.getElementById('predictionsBody').innerHTML = predictions.map((p, i) => {
-                const isDC     = p.tipType === 'DC';
-                const tipLabel = isDC ? p.dcType : 'O1.5';
-                const tipClass = isDC ? 'tip-dc' : 'tip-over';
-                const tipDesc  = isDC ? dcLabel(p.dcType) : 'Over 1.5 Goals';
-                const cc       = confClass(p.confidence);
-
-                return `
-                <tr class="${p.featured ? 'featured' : ''}" style="animation-delay:${i * 0.045}s">
-                    <td>
-                        <div class="teams-cell">
-                            <span class="team-name">${p.home}${p.featured ? '<span class="featured-star">Top Pick</span>' : ''}</span>
-                            <span class="vs-sep">vs</span>
-                            <span class="team-name">${p.away}</span>
-                        </div>
-                    </td>
-                    <td class="hide-mob"><span class="league-tag">${p.league}</span></td>
-                    <td><span class="time-box">${p.time}</span></td>
-                    <td>
-                        <div class="tip-wrap">
-                            <span class="tip-badge ${tipClass}">${tipLabel}</span>
-                            <span class="tip-desc">${tipDesc}</span>
-                        </div>
-                    </td>
-                    <td><span class="odds-box">${p.odds}</span></td>
-                    <td>
-                        <div class="conf-wrap">
-                            <div class="conf-track">
-                                <div class="conf-fill conf-${cc}" style="width:${p.confidence}%"></div>
-                            </div>
-                            <span class="conf-pct ${cc}">${p.confidence}%</span>
-                        </div>
-                    </td>
-                </tr>`;
-            }).join('');
-        }
-
-        // ── Fallback (hardcoded, shown only if API returns nothing today) ────────
-        const FALLBACK = [
-            { home:'Manchester City', away:'Liverpool',      league:'English Premier League', time:'17:30', tipType:'DC',   dcType:'1X', odds:'1.40', confidence:92, featured:true  },
-            { home:'Arsenal',         away:'Chelsea',         league:'English Premier League', time:'20:00', tipType:'DC',   dcType:'12', odds:'1.35', confidence:88, featured:false },
-            { home:'Real Madrid',     away:'Barcelona',       league:'La Liga',                time:'21:00', tipType:'OVER', dcType:null,  odds:'1.55', confidence:94, featured:false },
-            { home:'Bayern Munich',   away:'Dortmund',        league:'Bundesliga',             time:'18:30', tipType:'OVER', dcType:null,  odds:'1.45', confidence:91, featured:false },
-            { home:'Juventus',        away:'AC Milan',        league:'Serie A',                time:'19:45', tipType:'DC',   dcType:'X2', odds:'1.50', confidence:82, featured:false },
-            { home:'PSG',             away:'Marseille',       league:'Ligue 1',                time:'22:00', tipType:'DC',   dcType:'1X', odds:'1.30', confidence:89, featured:false },
-            { home:'Tottenham',       away:'Newcastle',       league:'English Premier League', time:'16:00', tipType:'OVER', dcType:null,  odds:'1.60', confidence:85, featured:false },
-            { home:'Inter Milan',     away:'Roma',            league:'Serie A',                time:'20:45', tipType:'DC',   dcType:'12', odds:'1.38', confidence:80, featured:false },
-            { home:'Atletico Madrid', away:'Sevilla',         league:'La Liga',                time:'18:15', tipType:'DC',   dcType:'1X', odds:'1.42', confidence:83, featured:false },
-            { home:'Leverkusen',      away:'Leipzig',         league:'Bundesliga',             time:'17:00', tipType:'OVER', dcType:null,  odds:'1.48', confidence:87, featured:false },
-        ];
-
-        // Boot
-        document.addEventListener('DOMContentLoaded', () => fetchAndRenderPredictions());
-    </script>
 </body>
 </html>
